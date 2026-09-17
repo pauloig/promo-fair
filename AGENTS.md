@@ -6,6 +6,17 @@
 - El README y los ADR son la **especificación a construir**, no la descripción de un código ya existente. No busques archivos de código que falten: están planificados, no implementados.
 - `opencode.json` ya inyecta `README.md` y `docs/**/*.md` (incluidos los 11 ADR) en el contexto de cada sesión. No los repitas en respuestas; consúltalos solo cuando apliquen.
 
+## Skills repo-locales (`.agents/skills/`)
+
+Instaladas con la CLI `skills` y versionadas (commitear; `skills-lock.json` las pine). Se cargan bajo demanda según la tarea; cárgalas en vez de reinventar sus directrices. Aplican al stack planificado:
+
+- `nestjs-practices`, `nestjs-e2e-practices` — arquitectura/patrones del backend
+- `prisma-postgres-setup`, `prisma-client-api` — schema, migraciones y API del cliente Prisma
+- `vercel-react-best-practices`, `frontend-design` — renderizado y diseño del frontend
+- `test-driven-development`, `systematic-debugging`, `code-review`, `solid-principles` — flujos de trabajo transversales
+
+Ejecutan con permisos de agente completos; revísalas antes de usarlas.
+
 ## Convenciones
 
 - **Idioma: español.** La documentación, los commits y los mensajes se escriben en español. Mantén ese idioma al tocar docs, ADR o README.

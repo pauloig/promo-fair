@@ -64,14 +64,15 @@ services:
     command:
       - >
         if [ ! -d /etc/letsencrypt/live/disagro.endtoendsolutions.dev ]; then
-          certbot certonly --webroot -w /var/www/certbot
-          --email ${LETSENCRYPT_EMAIL:-paulo.ismalej@gmail.com}
-          --agree-tos --no-eff-email -d disagro.endtoendsolutions.dev;
+          certbot certonly --webroot -w /var/www/certbot \
+          --email ${LETSENCRYPT_EMAIL:-paulo.ismalej@gmail.com} \
+          --non-interactive --agree-tos --no-eff-email -d disagro.endtoendsolutions.dev;
         fi;
         while :; do
           certbot renew --webroot -w /var/www/certbot --quiet;
           sleep 12h;
         done
+
 
 volumes:
   pgdata:

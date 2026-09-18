@@ -1,0 +1,4 @@
+export const UMBRAL_SERVICIOS_3_PCT = 2;
+export const UMBRAL_SERVICIOS_5_PCT_MONTO_CENTAVOS = 150_000;
+export const UMBRAL_PRODUCTOS_3_PCT = 3;
+export const UMBRAL_PRODUCTOS_5_PCT = 5;

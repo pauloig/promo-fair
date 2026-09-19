@@ -335,3 +335,84 @@ describe("POST /api/confirmaciones — validaciones", () => {
     expect(JSON.stringify(respuesta.body)).toMatch(/no son válidos/i);
   });
 });
+
+describe("GET /api/confirmaciones/mia — sesión de cliente", () => {
+  const email = "sesion.mia@example.com";
+  const seleccion = [
+    "Servicio control de plagas",
+    "Análisis de suelo",
+    "Asesoría de campo",
+    "Herbicida glifosato",
+    "Urea granulada",
+    "Insecticida cipermetrina",
+  ];
+  const fechaHoraEvento = "2026-11-21T11:30:00-06:00";
+
+  it("responde 401 cuando no hay cookie de sesión", async () => {
+    const respuesta = await request(app.getHttpServer())
+      .get("/api/confirmaciones/mia")
+      .expect(401);
+
+    expect(respuesta.body).toMatchObject({ statusCode: 401 });
+  });
+
+  it("devuelve 200 con la confirmación propia usando la cookie emitida al confirmar", async () => {
+    const emision = await request(app.getHttpServer())
+      .post("/api/confirmaciones")
+      .send(cuerpoConfirmacion(email, seleccion, fechaHoraEvento))
+      .expect(201);
+
+    const setCookie = emision.headers["set-cookie"];
+    const cookieCompleta = Array.isArray(setCookie) ? setCookie.join("; ") : String(setCookie);
+    const token = cookieCompleta.match(new RegExp(`${COOKIE_DE_SESION}=([^;]+)`))![1];
+
+    const respuesta = await request(app.getHttpServer())
+      .get("/api/confirmaciones/mia")
+      .set("Cookie", `${COOKIE_DE_SESION}=${token}`)
+      .expect(200);
+
+    expect(respuesta.body).toMatchObject({
+      id: emision.body.id,
+      fechaHoraEvento: new Date(fechaHoraEvento).toISOString(),
+      descuentoServiciosPct: 5,
+      descuentoProductosPct: 3,
+    });
+    expect(respuesta.body.items).toHaveLength(6);
+    expect(normalizarItems(respuesta.body.items)).toEqual(resumenEsperadoDeCatalogo(seleccion));
+  });
+
+  it("responde 401 cuando la cookie contiene un token inválido", async () => {
+    const respuesta = await request(app.getHttpServer())
+      .get("/api/confirmaciones/mia")
+      .set("Cookie", `${COOKIE_DE_SESION}=token-no-firmado`)
+      .expect(401);
+
+    expect(respuesta.body).toMatchObject({ statusCode: 401 });
+  });
+
+  it("responde 401 cuando el token está vencido", async () => {
+    const vencido = jwt.sign({ sub: "cliente-cualquiera" }, JWT_SECRET_E2E, {
+      expiresIn: "-1s",
+    });
+
+    const respuesta = await request(app.getHttpServer())
+      .get("/api/confirmaciones/mia")
+      .set("Cookie", `${COOKIE_DE_SESION}=${vencido}`)
+      .expect(401);
+
+    expect(respuesta.body).toMatchObject({ statusCode: 401 });
+  });
+
+  it("responde 404 cuando el cliente autenticado no tiene confirmación", async () => {
+    const sinConfirmacion = jwt.sign({ sub: "cliente-sin-confirmacion" }, JWT_SECRET_E2E, {
+      expiresIn: "1h",
+    });
+
+    const respuesta = await request(app.getHttpServer())
+      .get("/api/confirmaciones/mia")
+      .set("Cookie", `${COOKIE_DE_SESION}=${sinConfirmacion}`)
+      .expect(404);
+
+    expect(JSON.stringify(respuesta.body)).toMatch(/confirmación/i);
+  });
+});

@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type { ConfigType } from "@nestjs/config";
 import jwt from "jsonwebtoken";
 import {
@@ -9,8 +14,10 @@ import {
 import { EventoService } from "../evento/evento.service.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import {
+  toConfirmacionPropia,
   toConfirmacionResumen,
   type ConfirmacionConItems,
+  type ConfirmacionPropia,
 } from "./dto/confirmacion-resumen.dto.js";
 import jwtConfig from "./jwt.config.js";
 
@@ -134,6 +141,21 @@ export class ConfirmacionesService {
 
       return { resumen: toConfirmacionResumen(confirmacion), token };
     });
+  }
+
+  async mia(clienteId: string): Promise<ConfirmacionPropia> {
+    const confirmacion = await this.prisma.confirmacion.findUnique({
+      where: { clienteId },
+      include: { items: true },
+    });
+
+    if (!confirmacion) {
+      throw new NotFoundException(
+        "No hay una confirmación registrada para este cliente",
+      );
+    }
+
+    return toConfirmacionPropia(confirmacion);
   }
 
   private validarRangoDeFechaHora(fechaHoraEvento: string): void {

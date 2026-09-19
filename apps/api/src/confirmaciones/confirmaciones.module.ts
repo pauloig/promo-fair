@@ -8,6 +8,7 @@ import {
   LIMITE_CONFIRMACIONES_POR_IP,
   VENTANA_CONFIRMACIONES_MS,
 } from "./rate-limit.constants.js";
+import { SesionClienteGuard } from "./sesion-cliente.guard.js";
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import {
     }),
   ],
   controllers: [ConfirmacionesController],
-  providers: [ConfirmacionesService],
+  providers: [ConfirmacionesService, SesionClienteGuard],
 })
 export class ConfirmacionesModule {}

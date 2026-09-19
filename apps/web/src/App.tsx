@@ -1,78 +1,67 @@
-import { useMemo, useState } from "react";
-import { BotonConfirmar } from "./components/BotonConfirmar";
-import { Encabezado } from "./components/Encabezado";
-import { FormularioDatos } from "./components/FormularioDatos";
-import { PanelCatalogo } from "./components/PanelCatalogo";
-import { Pie } from "./components/Pie";
-import { CATALOGO } from "./lib/catalogo";
-import { calcularDescuentos } from "./lib/descuentos";
-import { DATOS_VACIOS } from "./lib/datos";
-import type { DatosCliente } from "./lib/datos";
+import { useEffect, useState } from "react";
+import { PantallaAlternativa } from "./routes/PantallaAlternativa";
+import { PantallaMockup } from "./routes/PantallaMockup";
+
+function normalizar(hash: string): string {
+  const ruta = hash.replace(/^#/, "");
+  if (ruta === "" || ruta === "/") return "/";
+  return ruta.startsWith("/") ? ruta : `/${ruta}`;
+}
+
+function useHashRuta(): string {
+  const [ruta, setRuta] = useState(() => normalizar(window.location.hash));
+
+  useEffect(() => {
+    const alCambiar = () => setRuta(normalizar(window.location.hash));
+    window.addEventListener("hashchange", alCambiar);
+    return () => window.removeEventListener("hashchange", alCambiar);
+  }, []);
+
+  return ruta;
+}
 
 export default function App() {
-  const [datosCliente, setDatosCliente] = useState<DatosCliente>(DATOS_VACIOS);
-  const [seleccionados, setSeleccionados] = useState<ReadonlySet<string>>(new Set());
-  const [confirmada, setConfirmada] = useState(false);
+  const ruta = useHashRuta();
 
-  const resumen = useMemo(
-    () => calcularDescuentos(CATALOGO.filter((item) => seleccionados.has(item.id))),
-    [seleccionados],
-  );
-
-  const datosCompletos =
-    datosCliente.nombre.trim() !== "" &&
-    datosCliente.apellidos.trim() !== "" &&
-    datosCliente.correo.trim() !== "" &&
-    datosCliente.fechaHora !== "";
-
-  const puedeConfirmar = datosCompletos && seleccionados.size > 0;
-  const pistaBloqueo =
-    seleccionados.size === 0
-      ? "Seleccione al menos un servicio o producto para confirmar."
-      : "Complete los campos del formulario para confirmar.";
-
-  function cambiarDato(campo: keyof DatosCliente, valor: string): void {
-    setDatosCliente((anterior) => ({ ...anterior, [campo]: valor }));
-  }
-
-  function alternarItem(id: string): void {
-    setSeleccionados((anterior) => {
-      const siguiente = new Set(anterior);
-      if (siguiente.has(id)) {
-        siguiente.delete(id);
-      } else {
-        siguiente.add(id);
-      }
-      return siguiente;
-    });
-  }
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [ruta]);
 
   return (
-    <div className="min-h-screen bg-gris-pagina px-4 py-6 sm:px-6 sm:py-10">
-      <div className="mx-auto w-full max-w-6xl overflow-hidden rounded-2xl bg-gris-claro shadow-lg">
-        <Encabezado />
+    <>
+      <nav
+        className="fixed right-3 top-3 z-50 flex items-center gap-1 rounded-full border border-white/10 bg-carbon/95 p-1 shadow-lg"
+        aria-label="Cambiar de vista"
+      >
+        <EnlaceRuta ruta="/" actual={ruta === "/"}>
+          Vista clásica
+        </EnlaceRuta>
+        <EnlaceRuta ruta="/alternativo" actual={ruta === "/alternativo"}>
+          Alternativo
+        </EnlaceRuta>
+      </nav>
 
-        <main className="flex flex-col gap-8 px-6 py-6 sm:px-8">
-          <div className="grid items-start gap-8 md:grid-cols-2">
-            <FormularioDatos valor={datosCliente} onChange={cambiarDato} />
-            <PanelCatalogo
-              seleccionados={seleccionados}
-              onAlternar={alternarItem}
-              resumen={resumen}
-            />
-          </div>
+      {ruta === "/alternativo" ? <PantallaAlternativa /> : <PantallaMockup />}
+    </>
+  );
+}
 
-          <BotonConfirmar
-            puedeConfirmar={puedeConfirmar}
-            pistaBloqueo={pistaBloqueo}
-            confirmada={confirmada}
-            nombre={datosCliente.nombre}
-            onConfirmar={() => setConfirmada(true)}
-          />
-        </main>
+type PropsEnlace = {
+  ruta: string;
+  actual: boolean;
+  children: React.ReactNode;
+};
 
-        <Pie />
-      </div>
-    </div>
+function EnlaceRuta({ ruta, actual, children }: PropsEnlace) {
+  return (
+    <a
+      href={`#${ruta}`}
+      aria-current={actual ? "page" : undefined}
+      className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+        actual ? "bg-hoja text-carbon" : "text-white/70 hover:bg-white/10 hover:text-white"
+      }`}
+    >
+      {children}
+    </a>
   );
 }

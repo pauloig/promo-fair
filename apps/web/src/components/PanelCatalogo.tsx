@@ -1,33 +1,27 @@
-import { useMemo, useState } from "react";
-import { CATALOGO } from "../lib/catalogo";
-import type { TipoItem } from "../lib/catalogo";
+import type { CatalogoItem } from "../lib/catalogo";
 import { formatearPrecioQ } from "../lib/dinero";
 import type { ResumenDescuentos } from "../lib/descuentos";
 import { EncabezadoSeccion } from "./EncabezadoSeccion";
+import { EtiquetaTipo } from "./EtiquetaTipo";
 import { IconoCheck, IconoLupa } from "./Iconos";
 
 type Props = {
+  filtrados: CatalogoItem[];
+  busqueda: string;
+  onCambioBusqueda: (valor: string) => void;
   seleccionados: ReadonlySet<string>;
   onAlternar: (id: string) => void;
   resumen: ResumenDescuentos;
 };
 
-const CLASES_BADGE: Record<TipoItem, string> = {
-  SERVICIO: "border-sky-300/40 bg-sky-400/10 text-sky-300",
-  PRODUCTO: "border-amber-300/40 bg-amber-300/10 text-amber-300",
-};
-
-export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
-  const [busqueda, setBusqueda] = useState("");
-
-  const filtrados = useMemo(
-    () =>
-      CATALOGO.filter((item) =>
-        item.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()),
-      ),
-    [busqueda],
-  );
-
+export function PanelCatalogo({
+  filtrados,
+  busqueda,
+  onCambioBusqueda,
+  seleccionados,
+  onAlternar,
+  resumen,
+}: Props) {
   return (
     <section className="flex flex-col gap-3">
       <EncabezadoSeccion numero={2} titulo="Seleccione Servicios y Productos de su interés" />
@@ -37,7 +31,7 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
           <input
             type="search"
             value={busqueda}
-            onChange={(evento) => setBusqueda(evento.target.value)}
+            onChange={(evento) => onCambioBusqueda(evento.target.value)}
             placeholder="Buscar Servicios y Productos"
             aria-label="Buscar Servicios y Productos"
             className="h-11 w-full rounded-full border-none bg-white pl-4 pr-12 text-sm text-[#2d3436] placeholder:text-[#6b7280] transition-colors hover:ring-1 hover:ring-verde/40 focus:outline-none focus:ring-2 focus:ring-verde/50"
@@ -78,11 +72,7 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
                     </span>
                     <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="text-sm leading-snug text-white">{item.nombre}</span>
-                      <span
-                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${CLASES_BADGE[item.tipo]}`}
-                      >
-                        {item.tipo === "SERVICIO" ? "Servicio" : "Producto"}
-                      </span>
+                      <EtiquetaTipo tipo={item.tipo} />
                     </span>
                     <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-white">
                       {formatearPrecioQ(item.precioCentavos)}

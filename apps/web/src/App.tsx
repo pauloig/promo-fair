@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
+import { BotonConfirmar } from "./components/BotonConfirmar";
 import { Encabezado } from "./components/Encabezado";
 import { FormularioDatos } from "./components/FormularioDatos";
 import { PanelCatalogo } from "./components/PanelCatalogo";
-import { BarraConfirmacion } from "./components/BarraConfirmacion";
+import { Pie } from "./components/Pie";
 import { CATALOGO } from "./lib/catalogo";
 import { calcularDescuentos } from "./lib/descuentos";
 import { DATOS_VACIOS } from "./lib/datos";
@@ -28,7 +29,7 @@ export default function App() {
   const pistaBloqueo =
     seleccionados.size === 0
       ? "Seleccione al menos un servicio o producto para confirmar."
-      : "Complete los datos del formulario para confirmar.";
+      : "Complete los campos del formulario para confirmar.";
 
   function cambiarDato(campo: keyof DatosCliente, valor: string): void {
     setDatosCliente((anterior) => ({ ...anterior, [campo]: valor }));
@@ -47,24 +48,31 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Encabezado />
+    <div className="min-h-screen bg-gris-pagina px-4 py-6 sm:py-10">
+      <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl bg-gris-claro shadow-lg">
+        <Encabezado />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-64 pt-6 sm:px-6 sm:pb-56 md:pb-48 lg:pb-44">
-        <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-[1fr_1.5fr]">
-          <FormularioDatos valor={datosCliente} onChange={cambiarDato} />
-          <PanelCatalogo seleccionados={seleccionados} onAlternar={alternarItem} />
-        </div>
-      </main>
+        <main className="flex flex-col gap-8 px-6 py-6 sm:px-8">
+          <div className="grid items-start gap-8 md:grid-cols-2">
+            <FormularioDatos valor={datosCliente} onChange={cambiarDato} />
+            <PanelCatalogo
+              seleccionados={seleccionados}
+              onAlternar={alternarItem}
+              resumen={resumen}
+            />
+          </div>
 
-      <BarraConfirmacion
-        resumen={resumen}
-        puedeConfirmar={puedeConfirmar}
-        pistaBloqueo={pistaBloqueo}
-        confirmada={confirmada}
-        nombre={datosCliente.nombre}
-        onConfirmar={() => setConfirmada(true)}
-      />
+          <BotonConfirmar
+            puedeConfirmar={puedeConfirmar}
+            pistaBloqueo={pistaBloqueo}
+            confirmada={confirmada}
+            nombre={datosCliente.nombre}
+            onConfirmar={() => setConfirmada(true)}
+          />
+        </main>
+
+        <Pie />
+      </div>
     </div>
   );
 }

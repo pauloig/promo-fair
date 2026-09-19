@@ -29,6 +29,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-no-usar-en-produccion}
       VENTAS_USERNAME: ${VENTAS_USERNAME:-ventas}
       VENTAS_PASSWORD: ${VENTAS_PASSWORD:-ventas}
+      EVENTO_FECHA_INICIO: ${EVENTO_FECHA_INICIO:-2026-11-21T08:00:00-06:00}
+      EVENTO_FECHA_FIN: ${EVENTO_FECHA_FIN:-2026-11-22T18:00:00-06:00}
     depends_on:
       - db
 

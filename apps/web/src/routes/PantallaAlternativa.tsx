@@ -2,6 +2,7 @@ import { EncabezadoSeccion } from "../components/EncabezadoSeccion";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { FormularioDatos } from "../components/FormularioDatos";
 import { IconoCheck, IconoLupa } from "../components/Iconos";
+import { PantallaConfirmada } from "../components/PantallaConfirmada";
 import { Pie } from "../components/Pie";
 import { useConfirmacion } from "../hooks/useConfirmacion";
 import type { CatalogoItem, TipoItem } from "../lib/catalogo";
@@ -86,6 +87,12 @@ function umbrales(tipo: TipoItem, categoria: ResumenCategoria): Umbral[] {
 export function PantallaAlternativa() {
   const c = useConfirmacion();
 
+  if (c.confirmada && c.resumenConfirmacion !== null) {
+    return (
+      <PantallaConfirmada resumen={c.resumenConfirmacion} nombre={c.nombre} />
+    );
+  }
+
   const pasos = [
     { numero: 1, etiqueta: "Datos", activo: c.datosCompletos },
     { numero: 2, etiqueta: "Selección", activo: c.seleccionados.size > 0 },
@@ -150,8 +157,10 @@ export function PantallaAlternativa() {
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-10">
             <FormularioDatos
-              valor={c.datosCliente}
-              onChange={c.cambiarDato}
+              control={c.control}
+              errores={c.errores}
+              rango={c.rango}
+              rangoError={c.rangoError}
               disposicion="cuadricula"
             />
 
@@ -231,8 +240,8 @@ export function PantallaAlternativa() {
               productos={c.resumen.productos}
               puedeConfirmar={c.puedeConfirmar}
               pistaBloqueo={c.pistaBloqueo}
-              confirmada={c.confirmada}
-              nombre={c.datosCliente.nombre}
+              enviando={c.enviando}
+              errorEnvio={c.errorEnvio}
               onConfirmar={c.confirmar}
             />
           </aside>
@@ -359,8 +368,8 @@ type PropsResumen = {
   productos: ResumenCategoria;
   puedeConfirmar: boolean;
   pistaBloqueo: string;
-  confirmada: boolean;
-  nombre: string;
+  enviando: boolean;
+  errorEnvio: string | null;
   onConfirmar: () => void;
 };
 
@@ -372,33 +381,11 @@ function ResumenPanel({
   productos,
   puedeConfirmar,
   pistaBloqueo,
-  confirmada,
-  nombre,
+  enviando,
+  errorEnvio,
   onConfirmar,
 }: PropsResumen) {
   const seleccionNula = servicios.cantidad + productos.cantidad === 0;
-
-  if (confirmada) {
-    return (
-      <div
-        className="flex flex-col items-center gap-3 rounded-2xl bg-carbon p-8 text-center text-white shadow-lg"
-        role="status"
-      >
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-hoja text-carbon">
-          <IconoCheck className="h-6 w-6" />
-        </span>
-        <p className="text-lg font-black">¡Asistencia confirmada!</p>
-        <p className="text-sm leading-relaxed text-white/70">
-          Gracias{nombre ? `, ${nombre}` : ""}. Confirmamos su asistencia con un
-          total estimado de{" "}
-          <span className="font-bold text-hoja">
-            {formatearPrecioQ(totalDespues)}
-          </span>{" "}
-          tras aplicar sus descuentos.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-carbon p-6 text-white shadow-lg">
@@ -478,6 +465,14 @@ function ResumenPanel({
       </div>
 
       <div className="flex flex-col gap-2">
+        {errorEnvio !== null && (
+          <p
+            role="alert"
+            className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-700"
+          >
+            {errorEnvio}
+          </p>
+        )}
         <button
           type="button"
           onClick={onConfirmar}
@@ -488,9 +483,9 @@ function ResumenPanel({
               : "cursor-not-allowed border border-white/20 bg-white/5 text-white/40"
           }`}
         >
-          Confirmar asistencia
+          {enviando ? "Enviando…" : "Confirmar asistencia"}
         </button>
-        {!puedeConfirmar && (
+        {!puedeConfirmar && !enviando && (
           <p className="text-center text-xs leading-snug text-white/50">
             {pistaBloqueo}
           </p>

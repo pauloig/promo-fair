@@ -2,11 +2,21 @@ import { BotonConfirmar } from "../components/BotonConfirmar";
 import { Encabezado } from "../components/Encabezado";
 import { FormularioDatos } from "../components/FormularioDatos";
 import { PanelCatalogo } from "../components/PanelCatalogo";
+import { PantallaConfirmada } from "../components/PantallaConfirmada";
 import { Pie } from "../components/Pie";
 import { useConfirmacion } from "../hooks/useConfirmacion";
 
 export function PantallaMockup() {
   const confirmacion = useConfirmacion();
+
+  if (confirmacion.confirmada && confirmacion.resumenConfirmacion !== null) {
+    return (
+      <PantallaConfirmada
+        resumen={confirmacion.resumenConfirmacion}
+        nombre={confirmacion.nombre}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gris-pagina px-4 py-6 sm:px-6 sm:py-10">
@@ -16,8 +26,10 @@ export function PantallaMockup() {
         <main className="flex flex-col gap-8 px-6 py-6 sm:px-8">
           <div className="grid items-start gap-8 md:grid-cols-2">
             <FormularioDatos
-              valor={confirmacion.datosCliente}
-              onChange={confirmacion.cambiarDato}
+              control={confirmacion.control}
+              errores={confirmacion.errores}
+              rango={confirmacion.rango}
+              rangoError={confirmacion.rangoError}
             />
             <PanelCatalogo
               filtrados={confirmacion.filtrados}
@@ -36,8 +48,8 @@ export function PantallaMockup() {
           <BotonConfirmar
             puedeConfirmar={confirmacion.puedeConfirmar}
             pistaBloqueo={confirmacion.pistaBloqueo}
-            confirmada={confirmacion.confirmada}
-            nombre={confirmacion.datosCliente.nombre}
+            enviando={confirmacion.enviando}
+            errorEnvio={confirmacion.errorEnvio}
             onConfirmar={confirmacion.confirmar}
           />
         </main>

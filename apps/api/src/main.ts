@@ -7,7 +7,7 @@ import { configureApp, GLOBAL_PREFIX } from "./app.setup.js";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors({ origin: true, credentials: true });
   configureApp(app);
 
   const documento = SwaggerModule.createDocument(
@@ -26,7 +26,8 @@ async function bootstrap(): Promise<void> {
           type: "apiKey",
           in: "cookie",
           name: "disagro_sesion",
-          description: "Sesión de cliente emitida al confirmar asistencia (ADR-003).",
+          description:
+            "Sesión de cliente emitida al confirmar asistencia (ADR-003).",
         },
         "disagro_sesion",
       )
@@ -36,7 +37,8 @@ async function bootstrap(): Promise<void> {
           type: "apiKey",
           in: "cookie",
           name: "disagro_sesion_ventas",
-          description: "Sesión del panel de Ventas, independiente de la de cliente (ADR-009).",
+          description:
+            "Sesión del panel de Ventas, independiente de la de cliente (ADR-009).",
         },
         "disagro_sesion_ventas",
       )

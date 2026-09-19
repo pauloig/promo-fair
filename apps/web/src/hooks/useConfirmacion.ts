@@ -1,16 +1,45 @@
+import {
+  ConfirmacionInputSchema,
+  type ConfirmacionInput,
+  type ConfirmacionResumen,
+} from "@disagro/shared/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { obtenerCatalogo } from "../lib/api";
-import { DATOS_VACIOS, type DatosCliente } from "../lib/datos";
+import { useForm } from "react-hook-form";
+import type { Control, FieldErrors } from "react-hook-form";
+import {
+  enviarConfirmacion,
+  obtenerCatalogo,
+  obtenerRangoFecha,
+  type RangoFecha,
+} from "../lib/api";
 import { calcularDescuentos } from "../lib/descuentos";
+import { formatoFechaLegible } from "../lib/fecha";
 
 const DEBOUNCE_MS = 300;
+
+const FORMULARIO_VACIO: ConfirmacionInput = {
+  cliente: { nombre: "", apellidos: "", email: "" },
+  fechaHoraEvento: "",
+  itemIds: [],
+};
 
 function mensajeError(error: unknown): string {
   if (error instanceof TypeError) return "No se pudo conectar con la API.";
   return error instanceof Error
     ? error.message
-    : "No se pudo consultar el catálogo.";
+    : "Ocurrió un error inesperado.";
+}
+
+function estaDentroDelRango(
+  fechaHoraEvento: string,
+  rango: RangoFecha,
+): boolean {
+  const momento = new Date(fechaHoraEvento).getTime();
+  const inicio = new Date(rango.fechaInicio).getTime();
+  const fin = new Date(rango.fechaFin).getTime();
+  return momento >= inicio && momento <= fin;
 }
 
 export function useConfirmacion() {
@@ -19,8 +48,19 @@ export function useConfirmacion() {
   const [seleccionados, setSeleccionados] = useState<ReadonlySet<string>>(
     new Set(),
   );
-  const [datosCliente, setDatosCliente] = useState<DatosCliente>(DATOS_VACIOS);
   const [confirmada, setConfirmada] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
+  const [resumenConfirmacion, setResumenConfirmacion] =
+    useState<ConfirmacionResumen | null>(null);
+
+  const form = useForm<ConfirmacionInput>({
+    resolver: zodResolver(ConfirmacionInputSchema),
+    mode: "onBlur",
+    reValidateMode: "onChange",
+    defaultValues: FORMULARIO_VACIO,
+  });
+  const { control, formState } = form;
 
   useEffect(() => {
     const temporizador = window.setTimeout(() => {
@@ -28,6 +68,10 @@ export function useConfirmacion() {
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(temporizador);
   }, [busqueda]);
+
+  useEffect(() => {
+    form.setValue("itemIds", [...seleccionados]);
+  }, [form, seleccionados]);
 
   const catalogo = useQuery({
     queryKey: ["catalogo", "completo"],
@@ -39,6 +83,12 @@ export function useConfirmacion() {
     queryFn: () => obtenerCatalogo(termino),
     enabled: termino !== "",
     placeholderData: keepPreviousData,
+  });
+
+  const rangoQuery = useQuery({
+    queryKey: ["evento", "rango-fecha"],
+    queryFn: obtenerRangoFecha,
+    staleTime: Infinity,
   });
 
   const hayBusqueda = termino !== "";
@@ -61,6 +111,11 @@ export function useConfirmacion() {
   const catalogoSinResultados =
     !catalogoCargando && catalogoError === null && filtrados.length === 0;
 
+  const rango = rangoQuery.data ?? null;
+  const rangoCargando = rangoQuery.isLoading;
+  const rangoError =
+    rangoQuery.error === null ? null : mensajeError(rangoQuery.error);
+
   const resumen = useMemo(
     () =>
       calcularDescuentos(
@@ -69,21 +124,19 @@ export function useConfirmacion() {
     [catalogo.data, seleccionados],
   );
 
+  const valores = form.watch();
+  const nombre = valores.cliente?.nombre ?? "";
   const datosCompletos =
-    datosCliente.nombre.trim() !== "" &&
-    datosCliente.apellidos.trim() !== "" &&
-    datosCliente.correo.trim() !== "" &&
-    datosCliente.fechaHora !== "";
+    nombre.trim() !== "" &&
+    (valores.cliente?.apellidos ?? "").trim() !== "" &&
+    (valores.cliente?.email ?? "").trim() !== "" &&
+    (valores.fechaHoraEvento ?? "") !== "";
 
-  const puedeConfirmar = datosCompletos && seleccionados.size > 0;
+  const puedeConfirmar = datosCompletos && seleccionados.size > 0 && !enviando;
   const pistaBloqueo =
     seleccionados.size === 0
       ? "Seleccione al menos un servicio o producto para confirmar."
       : "Complete los campos del formulario para confirmar.";
-
-  function cambiarDato(campo: keyof DatosCliente, valor: string): void {
-    setDatosCliente((anterior) => ({ ...anterior, [campo]: valor }));
-  }
 
   function alternarItem(id: string): void {
     setSeleccionados((anterior) => {
@@ -103,7 +156,29 @@ export function useConfirmacion() {
   }
 
   function confirmar(): void {
-    setConfirmada(true);
+    void form.handleSubmit(async (datos) => {
+      if (rango !== null && !estaDentroDelRango(datos.fechaHoraEvento, rango)) {
+        form.setError("fechaHoraEvento", {
+          type: "fueraRango",
+          message:
+            `La fecha y hora seleccionada está fuera del rango del evento ` +
+            `(entre el ${formatoFechaLegible(rango.fechaInicio)} y el ${formatoFechaLegible(rango.fechaFin)}).`,
+        });
+        return;
+      }
+
+      setEnviando(true);
+      setErrorEnvio(null);
+      try {
+        const resumen = await enviarConfirmacion(datos);
+        setResumenConfirmacion(resumen);
+        setConfirmada(true);
+      } catch (error) {
+        setErrorEnvio(mensajeError(error));
+      } finally {
+        setEnviando(false);
+      }
+    })();
   }
 
   return {
@@ -117,12 +192,19 @@ export function useConfirmacion() {
     seleccionados,
     alternarItem,
     resumen,
-    datosCliente,
-    cambiarDato,
+    control: control as Control<ConfirmacionInput>,
+    errores: formState.errors as FieldErrors<ConfirmacionInput>,
+    rango,
+    rangoCargando,
+    rangoError,
+    nombre,
     datosCompletos,
     puedeConfirmar,
     pistaBloqueo,
     confirmada,
     confirmar,
+    enviando,
+    errorEnvio,
+    resumenConfirmacion,
   };
 }

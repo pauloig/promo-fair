@@ -10,3 +10,23 @@ export function formatoFechaLegible(iso: string): string {
   });
   return formateador.format(new Date(iso));
 }
+
+function rellenar(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+export function isoADatetimeLocal(iso: string): string {
+  if (!iso) return "";
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return "";
+  return `${fecha.getFullYear()}-${rellenar(fecha.getMonth() + 1)}-${rellenar(
+    fecha.getDate(),
+  )}T${rellenar(fecha.getHours())}:${rellenar(fecha.getMinutes())}`;
+}
+
+export function datetimeLocalAIso(naiva: string): string {
+  if (!naiva) return "";
+  const fecha = new Date(naiva);
+  if (Number.isNaN(fecha.getTime())) return "";
+  return fecha.toISOString();
+}

@@ -3,35 +3,28 @@ import { IconoFlecha } from "./Iconos";
 type Props = {
   puedeConfirmar: boolean;
   pistaBloqueo: string;
-  confirmada: boolean;
-  nombre: string;
+  enviando: boolean;
+  errorEnvio: string | null;
   onConfirmar: () => void;
 };
 
 export function BotonConfirmar({
   puedeConfirmar,
   pistaBloqueo,
-  confirmada,
-  nombre,
+  enviando,
+  errorEnvio,
   onConfirmar,
 }: Props) {
-  if (confirmada) {
-    return (
-      <div
-        className="mx-auto flex max-w-lg flex-col items-center gap-1 rounded-xl border border-verde/40 bg-verde/10 px-6 py-4 text-center"
-        role="status"
-      >
-        <p className="text-base font-bold text-verde">¡Asistencia confirmada!</p>
-        <p className="text-sm text-[#2d3436]">
-          Gracias{nombre.trim() ? `, ${nombre.trim().split(" ")[0]}` : ""}. El equipo de
-          Ventas preparará su portafolio de promociones.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center gap-2">
+      {errorEnvio !== null && (
+        <p
+          role="alert"
+          className="max-w-xl rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-center text-xs font-medium text-red-700"
+        >
+          {errorEnvio}
+        </p>
+      )}
       <button
         type="button"
         onClick={onConfirmar}
@@ -42,10 +35,10 @@ export function BotonConfirmar({
             : "inline-flex cursor-not-allowed items-center gap-2.5 rounded-lg border border-[#8a9199] bg-[#9ca3af] px-10 py-3 text-sm font-bold tracking-wide text-[#3b434c]"
         }
       >
-        CONFIRMAR ASISTENCIA
+        {enviando ? "ENVIANDO…" : "CONFIRMAR ASISTENCIA"}
         <IconoFlecha />
       </button>
-      {!puedeConfirmar && (
+      {!puedeConfirmar && !enviando && (
         <p role="status" className="text-xs text-[#6b7280]">
           {pistaBloqueo}
         </p>

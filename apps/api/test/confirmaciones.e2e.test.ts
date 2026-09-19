@@ -11,25 +11,19 @@ import type { ConfirmacionResumen } from "@disagro/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
-import { applyMigrations, createTestDatabase } from "./helpers.js";
+import {
+  applyMigrations,
+  createTestDatabase,
+  seedCatalogo,
+  type ItemSemilla,
+  VENTAS_TEST_PASSWORD,
+  VENTAS_TEST_USERNAME,
+} from "./helpers.js";
 
 const EVENTO_FECHA_INICIO = "2026-11-21T08:00:00-06:00";
 const EVENTO_FECHA_FIN = "2026-11-22T18:00:00-06:00";
 const JWT_SECRET_E2E = "secreto-de-prueba-e2e-confirmaciones";
 const COOKIE_DE_SESION = "disagro_sesion";
-
-const CATALOGO_SEMILLA = [
-  { nombre: "Servicio control de plagas", tipo: "SERVICIO", precioActualCentavos: 100000, activo: true },
-  { nombre: "Análisis de suelo", tipo: "SERVICIO", precioActualCentavos: 50000, activo: true },
-  { nombre: "Asesoría de campo", tipo: "SERVICIO", precioActualCentavos: 60000, activo: true },
-  { nombre: "Herbicida glifosato", tipo: "PRODUCTO", precioActualCentavos: 46000, activo: true },
-  { nombre: "Urea granulada", tipo: "PRODUCTO", precioActualCentavos: 34000, activo: true },
-  { nombre: "Insecticida cipermetrina", tipo: "PRODUCTO", precioActualCentavos: 21000, activo: true },
-  { nombre: "Fungicida mancozeb", tipo: "PRODUCTO", precioActualCentavos: 9500, activo: true },
-  { nombre: "Ítem inactivo oculto", tipo: "PRODUCTO", precioActualCentavos: 1, activo: false },
-];
-
-type ItemSemilla = (typeof CATALOGO_SEMILLA)[number] & { id: string };
 
 interface ItemResumenNormalizado {
   tipo: string;
@@ -46,15 +40,8 @@ let originalFechaInicio: string | undefined;
 let originalFechaFin: string | undefined;
 let originalJwtSecret: string | undefined;
 let originalDatabaseUrl: string | undefined;
-
-async function seedCatalogo(databaseUrl: string): Promise<Record<string, ItemSemilla>> {
-  const semilla = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
-  await semilla.catalogoItem.createMany({ data: CATALOGO_SEMILLA });
-  const items = await semilla.catalogoItem.findMany();
-  await semilla.$disconnect();
-
-  return Object.fromEntries(items.map((item) => [item.nombre, { id: item.id, ...item }]));
-}
+let originalVentasUsername: string | undefined;
+let originalVentasPassword: string | undefined;
 
 function cuerpoConfirmacion(
   email: string,
@@ -106,9 +93,13 @@ beforeAll(async () => {
   originalFechaInicio = process.env.EVENTO_FECHA_INICIO;
   originalFechaFin = process.env.EVENTO_FECHA_FIN;
   originalJwtSecret = process.env.JWT_SECRET;
+  originalVentasUsername = process.env.VENTAS_USERNAME;
+  originalVentasPassword = process.env.VENTAS_PASSWORD;
   process.env.EVENTO_FECHA_INICIO = EVENTO_FECHA_INICIO;
   process.env.EVENTO_FECHA_FIN = EVENTO_FECHA_FIN;
   process.env.JWT_SECRET = JWT_SECRET_E2E;
+  process.env.VENTAS_USERNAME = VENTAS_TEST_USERNAME;
+  process.env.VENTAS_PASSWORD = VENTAS_TEST_PASSWORD;
 
   const created = await createTestDatabase("confirmaciones");
   adminPool = created.adminPool;
@@ -154,6 +145,16 @@ afterAll(async () => {
     process.env.JWT_SECRET = originalJwtSecret;
   } else {
     delete process.env.JWT_SECRET;
+  }
+  if (originalVentasUsername !== undefined) {
+    process.env.VENTAS_USERNAME = originalVentasUsername;
+  } else {
+    delete process.env.VENTAS_USERNAME;
+  }
+  if (originalVentasPassword !== undefined) {
+    process.env.VENTAS_PASSWORD = originalVentasPassword;
+  } else {
+    delete process.env.VENTAS_PASSWORD;
   }
 });
 

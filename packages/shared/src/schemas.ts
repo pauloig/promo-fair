@@ -36,9 +36,22 @@ export const ConfirmacionResumenSchema = z.object({
   descuentoProductosPct: z.number().int().min(0),
 });
 
+export const VentasLoginInputSchema = z.object({
+  username: z.string().trim().min(1),
+  password: z.string().min(1),
+});
+
+export const VentasFiltrosSchema = z.object({
+  fechaDesde: z.iso.datetime({ offset: true }).optional(),
+  fechaHasta: z.iso.datetime({ offset: true }).optional(),
+  catalogoItemId: z.uuid().optional(),
+});
+
 export type TipoItem = z.infer<typeof TipoItemSchema>;
 export type Cliente = z.infer<typeof ClienteSchema>;
 export type CatalogoItem = z.infer<typeof CatalogoItemSchema>;
 export type ConfirmacionInput = z.infer<typeof ConfirmacionInputSchema>;
 export type ConfirmacionItemResumen = z.infer<typeof ConfirmacionItemResumenSchema>;
 export type ConfirmacionResumen = z.infer<typeof ConfirmacionResumenSchema>;
+export type VentasLoginInput = z.infer<typeof VentasLoginInputSchema>;
+export type VentasFiltros = z.infer<typeof VentasFiltrosSchema>;

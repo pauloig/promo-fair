@@ -6,13 +6,19 @@ import jwtConfig from "./confirmaciones/jwt.config.js";
 import eventoConfig from "./evento/evento.config.js";
 import { EventoModule } from "./evento/evento.module.js";
 import { HealthController } from "./health.controller.js";
+import { VentasModule } from "./ventas/ventas.module.js";
+import ventasConfig from "./ventas/ventas.config.js";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [eventoConfig, jwtConfig] }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [eventoConfig, jwtConfig, ventasConfig],
+    }),
     CatalogoModule,
     EventoModule,
     ConfirmacionesModule,
+    VentasModule,
   ],
   controllers: [HealthController],
 })

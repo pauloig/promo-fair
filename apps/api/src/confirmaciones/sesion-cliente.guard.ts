@@ -8,6 +8,7 @@ import {
 import type { ConfigType } from "@nestjs/config";
 import type { Request } from "express";
 import jwt from "jsonwebtoken";
+import { leerCookieDe } from "../common/cookie.util.js";
 import jwtConfig from "./jwt.config.js";
 
 export interface RequestConCliente extends Request {
@@ -24,7 +25,7 @@ export class SesionClienteGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
 
-    const token = this.leerCookieDeSesion(request);
+    const token = leerCookieDe(request, this.jwt.cookieName);
     if (token === undefined) {
       throw new UnauthorizedException(
         "No hay una sesión de cliente válida: falta la cookie de sesión",
@@ -51,27 +52,5 @@ export class SesionClienteGuard implements CanActivate {
 
     (request as RequestConCliente).clienteId = clienteId;
     return true;
-  }
-
-  private leerCookieDeSesion(request: Request): string | undefined {
-    const cabecera = request.headers.cookie;
-    if (cabecera === undefined) return undefined;
-
-    for (const segmento of cabecera.split(";")) {
-      const igual = segmento.indexOf("=");
-      if (igual === -1) continue;
-
-      const nombre = segmento.slice(0, igual).trim();
-      const valor = segmento.slice(igual + 1);
-      if (nombre !== this.jwt.cookieName) continue;
-
-      try {
-        return decodeURIComponent(valor.trim());
-      } catch {
-        return undefined;
-      }
-    }
-
-    return undefined;
   }
 }

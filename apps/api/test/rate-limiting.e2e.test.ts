@@ -10,6 +10,10 @@ import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
 import { applyMigrations, createTestDatabase } from "./helpers.js";
 import {
+  VENTAS_TEST_PASSWORD,
+  VENTAS_TEST_USERNAME,
+} from "./helpers.js";
+import {
   LIMITE_CONFIRMACIONES_POR_IP,
   VENTANA_CONFIRMACIONES_MS,
 } from "../src/confirmaciones/rate-limit.constants.js";
@@ -34,6 +38,8 @@ let originalDatabaseUrl: string | undefined;
 let originalFechaInicio: string | undefined;
 let originalFechaFin: string | undefined;
 let originalJwtSecret: string | undefined;
+let originalVentasUsername: string | undefined;
+let originalVentasPassword: string | undefined;
 
 async function seedCatalogo(databaseUrl: string): Promise<Record<string, ItemSemilla>> {
   const semilla = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
@@ -61,9 +67,13 @@ beforeAll(async () => {
   originalFechaInicio = process.env.EVENTO_FECHA_INICIO;
   originalFechaFin = process.env.EVENTO_FECHA_FIN;
   originalJwtSecret = process.env.JWT_SECRET;
+  originalVentasUsername = process.env.VENTAS_USERNAME;
+  originalVentasPassword = process.env.VENTAS_PASSWORD;
   process.env.EVENTO_FECHA_INICIO = EVENTO_FECHA_INICIO;
   process.env.EVENTO_FECHA_FIN = EVENTO_FECHA_FIN;
   process.env.JWT_SECRET = JWT_SECRET_E2E;
+  process.env.VENTAS_USERNAME = VENTAS_TEST_USERNAME;
+  process.env.VENTAS_PASSWORD = VENTAS_TEST_PASSWORD;
 
   const created = await createTestDatabase("rate_limiting");
   adminPool = created.adminPool;
@@ -109,6 +119,16 @@ afterAll(async () => {
     process.env.JWT_SECRET = originalJwtSecret;
   } else {
     delete process.env.JWT_SECRET;
+  }
+  if (originalVentasUsername !== undefined) {
+    process.env.VENTAS_USERNAME = originalVentasUsername;
+  } else {
+    delete process.env.VENTAS_USERNAME;
+  }
+  if (originalVentasPassword !== undefined) {
+    process.env.VENTAS_PASSWORD = originalVentasPassword;
+  } else {
+    delete process.env.VENTAS_PASSWORD;
   }
 });
 

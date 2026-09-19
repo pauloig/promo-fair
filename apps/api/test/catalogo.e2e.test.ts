@@ -8,12 +8,19 @@ import { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
-import { applyMigrations, createTestDatabase } from "./helpers.js";
+import {
+  applyMigrations,
+  createTestDatabase,
+  VENTAS_TEST_PASSWORD,
+  VENTAS_TEST_USERNAME,
+} from "./helpers.js";
 
 let app: INestApplication;
 let adminPool: Pool;
 let testDatabaseUrl: string;
 let originalDatabaseUrl: string | undefined;
+let originalVentasUsername: string | undefined;
+let originalVentasPassword: string | undefined;
 
 async function seedCatalogo(databaseUrl: string): Promise<void> {
   // Precondición acotada: el catálogo no tiene ruta pública de alta (GET-only) desde HTTP.
@@ -30,6 +37,10 @@ async function seedCatalogo(databaseUrl: string): Promise<void> {
 
 beforeAll(async () => {
   originalDatabaseUrl = process.env.DATABASE_URL;
+  originalVentasUsername = process.env.VENTAS_USERNAME;
+  originalVentasPassword = process.env.VENTAS_PASSWORD;
+  process.env.VENTAS_USERNAME = VENTAS_TEST_USERNAME;
+  process.env.VENTAS_PASSWORD = VENTAS_TEST_PASSWORD;
 
   const created = await createTestDatabase("catalogo");
   adminPool = created.adminPool;
@@ -57,6 +68,16 @@ afterAll(async () => {
     process.env.DATABASE_URL = originalDatabaseUrl;
   } else {
     delete process.env.DATABASE_URL;
+  }
+  if (originalVentasUsername !== undefined) {
+    process.env.VENTAS_USERNAME = originalVentasUsername;
+  } else {
+    delete process.env.VENTAS_USERNAME;
+  }
+  if (originalVentasPassword !== undefined) {
+    process.env.VENTAS_PASSWORD = originalVentasPassword;
+  } else {
+    delete process.env.VENTAS_PASSWORD;
   }
 });
 

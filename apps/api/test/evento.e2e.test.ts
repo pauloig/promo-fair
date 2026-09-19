@@ -5,6 +5,10 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
+import {
+  VENTAS_TEST_PASSWORD,
+  VENTAS_TEST_USERNAME,
+} from "./helpers.js";
 
 const FECHA_INICIO = "2026-11-21T08:00:00-06:00";
 const FECHA_FIN = "2026-11-22T18:00:00-06:00";
@@ -12,6 +16,8 @@ const FECHA_FIN = "2026-11-22T18:00:00-06:00";
 let app: INestApplication;
 let originalFechaInicio: string | undefined;
 let originalFechaFin: string | undefined;
+let originalVentasUsername: string | undefined;
+let originalVentasPassword: string | undefined;
 
 async function crearApp(): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -24,8 +30,12 @@ async function crearApp(): Promise<INestApplication> {
 beforeAll(async () => {
   originalFechaInicio = process.env.EVENTO_FECHA_INICIO;
   originalFechaFin = process.env.EVENTO_FECHA_FIN;
+  originalVentasUsername = process.env.VENTAS_USERNAME;
+  originalVentasPassword = process.env.VENTAS_PASSWORD;
   process.env.EVENTO_FECHA_INICIO = FECHA_INICIO;
   process.env.EVENTO_FECHA_FIN = FECHA_FIN;
+  process.env.VENTAS_USERNAME = VENTAS_TEST_USERNAME;
+  process.env.VENTAS_PASSWORD = VENTAS_TEST_PASSWORD;
 
   app = await crearApp();
 });
@@ -41,6 +51,16 @@ afterAll(async () => {
     process.env.EVENTO_FECHA_FIN = originalFechaFin;
   } else {
     delete process.env.EVENTO_FECHA_FIN;
+  }
+  if (originalVentasUsername !== undefined) {
+    process.env.VENTAS_USERNAME = originalVentasUsername;
+  } else {
+    delete process.env.VENTAS_USERNAME;
+  }
+  if (originalVentasPassword !== undefined) {
+    process.env.VENTAS_PASSWORD = originalVentasPassword;
+  } else {
+    delete process.env.VENTAS_PASSWORD;
   }
 });
 

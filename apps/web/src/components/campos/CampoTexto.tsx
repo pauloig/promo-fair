@@ -5,7 +5,7 @@ type Props = {
   etiqueta: string;
   placeholder: string;
   autoCompletar?: string;
-  tipo?: "text" | "email";
+  tipo?: "text" | "email" | "password";
   valor: string;
   onCambio: (valor: string) => void;
   anchoClase?: string;

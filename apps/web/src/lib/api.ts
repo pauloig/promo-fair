@@ -1,6 +1,9 @@
 import type {
   ConfirmacionInput,
   ConfirmacionResumen,
+  VentasConfirmacionesRespuesta,
+  VentasFiltros,
+  VentasLoginInput,
 } from "@disagro/shared/schemas";
 import type { CatalogoItem, TipoItem } from "./catalogo";
 
@@ -88,4 +91,75 @@ async function mensajeDe(respuesta: Response): Promise<string> {
   }
 
   return `La API respondió con el estado ${respuesta.status}`;
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, mensaje: string) {
+    super(mensaje);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+export async function iniciarSesionVentas(
+  input: VentasLoginInput,
+): Promise<void> {
+  const respuesta = await fetch(`${BASE_API}/ventas/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  if (!respuesta.ok) {
+    throw new ApiError(respuesta.status, await mensajeDe(respuesta));
+  }
+}
+
+function conFiltrosVentas(base: string, filtros: VentasFiltros): URL {
+  const url = new URL(base, window.location.origin);
+  if (filtros.fechaDesde !== undefined) {
+    url.searchParams.set("fechaDesde", filtros.fechaDesde);
+  }
+  if (filtros.fechaHasta !== undefined) {
+    url.searchParams.set("fechaHasta", filtros.fechaHasta);
+  }
+  if (filtros.catalogoItemId !== undefined) {
+    url.searchParams.set("catalogoItemId", filtros.catalogoItemId);
+  }
+  return url;
+}
+
+export async function obtenerConfirmacionesVentas(
+  filtros: VentasFiltros,
+): Promise<VentasConfirmacionesRespuesta> {
+  const url = conFiltrosVentas(`${BASE_API}/ventas/confirmaciones`, filtros);
+  const respuesta = await fetch(url, {
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  });
+
+  if (!respuesta.ok) {
+    throw new ApiError(respuesta.status, await mensajeDe(respuesta));
+  }
+
+  return (await respuesta.json()) as VentasConfirmacionesRespuesta;
+}
+
+export async function exportarConfirmacionesVentas(
+  filtros: VentasFiltros,
+): Promise<Blob> {
+  const url = conFiltrosVentas(
+    `${BASE_API}/ventas/confirmaciones/export`,
+    filtros,
+  );
+  const respuesta = await fetch(url, { credentials: "include" });
+
+  if (!respuesta.ok) {
+    throw new ApiError(respuesta.status, await mensajeDe(respuesta));
+  }
+
+  return respuesta.blob();
 }

@@ -496,6 +496,14 @@ function ResumenPanel({
           </p>
         )}
       </div>
+
+      <p
+        role="note"
+        className="text-center text-[11px] leading-snug text-white/50"
+      >
+        Vista previa en vivo del descuento: se consolida al enviar el
+        formulario.
+      </p>
     </div>
   );
 }

@@ -56,12 +56,14 @@ export function PanelCatalogo({
           Servicios y/o Productos seleccionados:
         </p>
 
-        <ul className="lista-oscura flex max-h-60 flex-col gap-2 overflow-y-auto pr-1">
-          {cargando ? (
+        {cargando ? (
+          <ul className="lista-oscura flex max-h-60 flex-col gap-2 overflow-y-auto pr-1">
             <li className="rounded-lg bg-white/5 px-3 py-3 text-center text-sm text-white/60">
               Consultando el catálogo…
             </li>
-          ) : error !== null ? (
+          </ul>
+        ) : error !== null ? (
+          <ul className="lista-oscura flex max-h-60 flex-col gap-2 overflow-y-auto pr-1">
             <li className="flex flex-col gap-2 rounded-lg bg-hoja/10 px-3 py-3 text-center text-sm text-white/80">
               <span>No se pudo cargar el catálogo. {error}</span>
               <button
@@ -72,47 +74,22 @@ export function PanelCatalogo({
                 Reintentar
               </button>
             </li>
-          ) : sinResultados ? (
+          </ul>
+        ) : sinResultados ? (
+          <ul className="lista-oscura flex max-h-60 flex-col gap-2 overflow-y-auto pr-1">
             <li className="rounded-lg bg-white/5 px-3 py-3 text-center text-sm text-white/60">
               {busqueda.trim() === ""
                 ? "El catálogo está vacío."
                 : `No se encontró ningún elemento para “${busqueda}”.`}
             </li>
-          ) : (
-            filtrados.map((item) => {
-              const seleccionado = seleccionados.has(item.id);
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => onAlternar(item.id)}
-                    aria-pressed={seleccionado}
-                    className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg bg-white/5 px-3 py-2 text-left transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-verde/50"
-                  >
-                    <span
-                      className={
-                        seleccionado
-                          ? "flex h-5 w-5 shrink-0 items-center justify-center rounded bg-verde text-white"
-                          : "flex h-5 w-5 shrink-0 items-center justify-center rounded border border-white/40 text-transparent"
-                      }
-                    >
-                      <IconoCheck />
-                    </span>
-                    <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-sm leading-snug text-white">
-                        {item.nombre}
-                      </span>
-                      <EtiquetaTipo tipo={item.tipo} />
-                    </span>
-                    <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-white">
-                      {formatearPrecioQ(item.precioCentavos)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })
-          )}
-        </ul>
+          </ul>
+        ) : (
+          <GruposCatalogo
+            items={filtrados}
+            seleccionados={seleccionados}
+            onAlternar={onAlternar}
+          />
+        )}
 
         <div
           className="grid grid-cols-2 divide-x divide-white/15 border-t border-white/15 pt-3"
@@ -136,7 +113,113 @@ export function PanelCatalogo({
             </span>
           </div>
         </div>
+
+        <p
+          role="note"
+          className="text-center text-[11px] leading-snug text-white/50"
+        >
+          Descuento en vivo a modo de vista previa: se confirma al enviar el
+          formulario.
+        </p>
       </div>
     </section>
+  );
+}
+
+type PropsGrupo = {
+  titulo: string;
+  items: CatalogoItem[];
+  seleccionados: ReadonlySet<string>;
+  onAlternar: (id: string) => void;
+};
+
+function GruposCatalogo({
+  items,
+  seleccionados,
+  onAlternar,
+}: Omit<PropsGrupo, "titulo">) {
+  const servicios = items.filter((item) => item.tipo === "SERVICIO");
+  const productos = items.filter((item) => item.tipo === "PRODUCTO");
+
+  return (
+    <div className="flex max-h-60 flex-col gap-2 overflow-y-auto pr-1">
+      {servicios.length > 0 && (
+        <GrupoCatalogo
+          titulo="Servicios"
+          items={servicios}
+          seleccionados={seleccionados}
+          onAlternar={onAlternar}
+        />
+      )}
+      {productos.length > 0 && (
+        <GrupoCatalogo
+          titulo="Productos"
+          items={productos}
+          seleccionados={seleccionados}
+          onAlternar={onAlternar}
+        />
+      )}
+    </div>
+  );
+}
+
+function GrupoCatalogo({
+  titulo,
+  items,
+  seleccionados,
+  onAlternar,
+}: PropsGrupo) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-xs font-black uppercase tracking-wide text-verde-claro">
+        {titulo}
+      </p>
+      <ul className="lista-oscura flex flex-col gap-2">
+        {items.map((item) => (
+          <ItemCatalogo
+            key={item.id}
+            item={item}
+            seleccionado={seleccionados.has(item.id)}
+            onAlternar={onAlternar}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+type PropsItem = {
+  item: CatalogoItem;
+  seleccionado: boolean;
+  onAlternar: (id: string) => void;
+};
+
+function ItemCatalogo({ item, seleccionado, onAlternar }: PropsItem) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => onAlternar(item.id)}
+        aria-pressed={seleccionado}
+        className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg bg-white/5 px-3 py-2 text-left transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-verde/50"
+      >
+        <span
+          className={
+            seleccionado
+              ? "flex h-5 w-5 shrink-0 items-center justify-center rounded bg-verde text-white"
+              : "flex h-5 w-5 shrink-0 items-center justify-center rounded border border-white/40 text-transparent"
+          }
+        >
+          <IconoCheck />
+        </span>
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-sm leading-snug text-white">{item.nombre}</span>
+          <EtiquetaTipo tipo={item.tipo} />
+        </span>
+        <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-white">
+          {formatearPrecioQ(item.precioCentavos)}
+        </span>
+      </button>
+    </li>
   );
 }

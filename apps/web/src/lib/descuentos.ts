@@ -1,6 +1,8 @@
+import { calcularDescuentos as calcularPorcentajes } from "@disagro/shared/motor-descuentos";
+import { UMBRAL_SERVICIOS_5_PCT_MONTO_CENTAVOS } from "@disagro/shared/constants";
 import type { CatalogoItem } from "./catalogo";
 
-export const UMBRAL_SERVICIOS_CENTAVOS = 150000;
+export const UMBRAL_SERVICIOS_CENTAVOS = UMBRAL_SERVICIOS_5_PCT_MONTO_CENTAVOS;
 
 export type ResumenDescuentos = {
   servicios: ResumenCategoria;
@@ -16,39 +18,41 @@ export type ResumenCategoria = {
   ahorroCentavos: number;
 };
 
-export function calcularDescuentos(seleccion: CatalogoItem[]): ResumenDescuentos {
+export function calcularDescuentos(
+  seleccion: CatalogoItem[],
+): ResumenDescuentos {
   const servicios = seleccion.filter((item) => item.tipo === "SERVICIO");
   const productos = seleccion.filter((item) => item.tipo === "PRODUCTO");
 
-  const subtotalServicios = sumaPrecisa(servicios);
-  const subtotalProductos = sumaPrecisa(productos);
+  const subtotalServicios = sumaPrecios(servicios);
+  const subtotalProductos = sumaPrecios(productos);
 
-  const pctServicios = Math.max(
-    servicios.length >= 2 ? 3 : 0,
-    servicios.length >= 2 && subtotalServicios > UMBRAL_SERVICIOS_CENTAVOS ? 5 : 0,
-  );
-  const pctProductos = Math.max(
-    productos.length >= 3 ? 3 : 0,
-    productos.length >= 5 ? 5 : 0,
+  const { descuentoServiciosPct, descuentoProductosPct } = calcularPorcentajes(
+    seleccion.map(({ tipo, precioCentavos }) => ({ tipo, precioCentavos })),
   );
 
-  const ahorroServicios = Math.round((subtotalServicios * pctServicios) / 100);
-  const ahorroProductos = Math.round((subtotalProductos * pctProductos) / 100);
+  const ahorroServicios = Math.round(
+    (subtotalServicios * descuentoServiciosPct) / 100,
+  );
+  const ahorroProductos = Math.round(
+    (subtotalProductos * descuentoProductosPct) / 100,
+  );
 
   const totalAntesCentavos = subtotalServicios + subtotalProductos;
-  const totalDespuesCentavos = totalAntesCentavos - ahorroServicios - ahorroProductos;
+  const totalDespuesCentavos =
+    totalAntesCentavos - ahorroServicios - ahorroProductos;
 
   return {
     servicios: {
       cantidad: servicios.length,
       subtotalCentavos: subtotalServicios,
-      porcentaje: pctServicios,
+      porcentaje: descuentoServiciosPct,
       ahorroCentavos: ahorroServicios,
     },
     productos: {
       cantidad: productos.length,
       subtotalCentavos: subtotalProductos,
-      porcentaje: pctProductos,
+      porcentaje: descuentoProductosPct,
       ahorroCentavos: ahorroProductos,
     },
     totalAntesCentavos,
@@ -56,6 +60,6 @@ export function calcularDescuentos(seleccion: CatalogoItem[]): ResumenDescuentos
   };
 }
 
-function sumaPrecisa(items: CatalogoItem[]): number {
+function sumaPrecios(items: CatalogoItem[]): number {
   return items.reduce((acumulado, item) => acumulado + item.precioCentavos, 0);
 }

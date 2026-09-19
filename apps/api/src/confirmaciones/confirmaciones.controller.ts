@@ -1,5 +1,6 @@
-import { Body, Controller, Inject, Post, Res } from "@nestjs/common";
+import { Body, Controller, Inject, Post, Res, UseGuards } from "@nestjs/common";
 import type { ConfigType } from "@nestjs/config";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import type { Response } from "express";
 import {
   ConfirmacionInputSchema,
@@ -9,8 +10,19 @@ import {
 import { ZodValidationPipe } from "../common/zod-validation.pipe.js";
 import { ConfirmacionesService } from "./confirmaciones.service.js";
 import jwtConfig from "./jwt.config.js";
+import {
+  LIMITE_CONFIRMACIONES_POR_IP,
+  VENTANA_CONFIRMACIONES_MS,
+} from "./rate-limit.constants.js";
 
 @Controller("confirmaciones")
+@UseGuards(ThrottlerGuard)
+@Throttle({
+  default: {
+    limit: LIMITE_CONFIRMACIONES_POR_IP,
+    ttl: VENTANA_CONFIRMACIONES_MS,
+  },
+})
 export class ConfirmacionesController {
   constructor(
     private readonly confirmacionesService: ConfirmacionesService,

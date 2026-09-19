@@ -1,8 +1,4 @@
 import "dotenv/config";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { randomUUID } from "node:crypto";
-import path from "node:path";
 import { Pool } from "pg";
 import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
@@ -12,46 +8,12 @@ import { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
-
-const execFileAsync = promisify(execFile);
-const API_DIR = path.resolve(process.cwd());
-const PRISMA_BIN = path.join(API_DIR, "node_modules", ".bin", "prisma");
+import { applyMigrations, createTestDatabase } from "./helpers.js";
 
 let app: INestApplication;
 let adminPool: Pool;
 let testDatabaseUrl: string;
 let originalDatabaseUrl: string | undefined;
-
-function assertLocalUrl(url: string): void {
-  const host = new URL(url).hostname;
-  if (!["localhost", "127.0.0.1", "::1"].includes(host)) {
-    throw new Error(
-      `DATABASE_URL no local para la prueba E2E (host "${host}"). Se exige una base aislada local.`,
-    );
-  }
-}
-
-async function createTestDatabase(): Promise<{ adminPool: Pool; databaseUrl: string }> {
-  const adminUrl = process.env.DATABASE_URL;
-  if (!adminUrl) throw new Error("DATABASE_URL es requerida para la prueba E2E");
-
-  assertLocalUrl(adminUrl);
-
-  const pool = new Pool({ connectionString: adminUrl });
-  const databaseName = `catalogo_e2e_${randomUUID().replaceAll("-", "")}`;
-  await pool.query(`CREATE DATABASE "${databaseName}"`);
-
-  const databaseUrl = new URL(adminUrl);
-  databaseUrl.pathname = `/${databaseName}`;
-  return { adminPool: pool, databaseUrl: databaseUrl.toString() };
-}
-
-async function applyMigrations(databaseUrl: string): Promise<void> {
-  await execFileAsync(PRISMA_BIN, ["migrate", "deploy"], {
-    cwd: API_DIR,
-    env: { ...process.env, DATABASE_URL: databaseUrl },
-  });
-}
 
 async function seedCatalogo(databaseUrl: string): Promise<void> {
   // Precondición acotada: el catálogo no tiene ruta pública de alta (GET-only) desde HTTP.
@@ -69,7 +31,7 @@ async function seedCatalogo(databaseUrl: string): Promise<void> {
 beforeAll(async () => {
   originalDatabaseUrl = process.env.DATABASE_URL;
 
-  const created = await createTestDatabase();
+  const created = await createTestDatabase("catalogo");
   adminPool = created.adminPool;
   testDatabaseUrl = created.databaseUrl;
 

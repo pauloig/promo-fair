@@ -1,8 +1,4 @@
 import "dotenv/config";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { randomUUID } from "node:crypto";
-import path from "node:path";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
 import { Test } from "@nestjs/testing";
@@ -15,10 +11,7 @@ import type { ConfirmacionResumen } from "@disagro/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
-
-const execFileAsync = promisify(execFile);
-const API_DIR = path.resolve(process.cwd());
-const PRISMA_BIN = path.join(API_DIR, "node_modules", ".bin", "prisma");
+import { applyMigrations, createTestDatabase } from "./helpers.js";
 
 const EVENTO_FECHA_INICIO = "2026-11-21T08:00:00-06:00";
 const EVENTO_FECHA_FIN = "2026-11-22T18:00:00-06:00";
@@ -53,37 +46,6 @@ let originalFechaInicio: string | undefined;
 let originalFechaFin: string | undefined;
 let originalJwtSecret: string | undefined;
 let originalDatabaseUrl: string | undefined;
-
-function assertLocalUrl(url: string): void {
-  const host = new URL(url).hostname;
-  if (!["localhost", "127.0.0.1", "::1"].includes(host)) {
-    throw new Error(
-      `DATABASE_URL no local para la prueba E2E (host "${host}"). Se exige una base aislada local.`,
-    );
-  }
-}
-
-async function createTestDatabase(): Promise<{ adminPool: Pool; databaseUrl: string }> {
-  const adminUrl = process.env.DATABASE_URL;
-  if (!adminUrl) throw new Error("DATABASE_URL es requerida para la prueba E2E");
-
-  assertLocalUrl(adminUrl);
-
-  const pool = new Pool({ connectionString: adminUrl });
-  const databaseName = `confirmaciones_e2e_${randomUUID().replaceAll("-", "")}`;
-  await pool.query(`CREATE DATABASE "${databaseName}"`);
-
-  const databaseUrl = new URL(adminUrl);
-  databaseUrl.pathname = `/${databaseName}`;
-  return { adminPool: pool, databaseUrl: databaseUrl.toString() };
-}
-
-async function applyMigrations(databaseUrl: string): Promise<void> {
-  await execFileAsync(PRISMA_BIN, ["migrate", "deploy"], {
-    cwd: API_DIR,
-    env: { ...process.env, DATABASE_URL: databaseUrl },
-  });
-}
 
 async function seedCatalogo(databaseUrl: string): Promise<Record<string, ItemSemilla>> {
   const semilla = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
@@ -148,7 +110,7 @@ beforeAll(async () => {
   process.env.EVENTO_FECHA_FIN = EVENTO_FECHA_FIN;
   process.env.JWT_SECRET = JWT_SECRET_E2E;
 
-  const created = await createTestDatabase();
+  const created = await createTestDatabase("confirmaciones");
   adminPool = created.adminPool;
   testDatabaseUrl = created.databaseUrl;
 

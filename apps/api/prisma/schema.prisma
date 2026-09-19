@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TipoItem {
+  SERVICIO
+  PRODUCTO
+}
+
+model Cliente {
+  id            String    @id @default(uuid())
+  nombre        String
+  apellidos     String
+  email         String    @unique
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+  confirmacion  Confirmacion?
+}
+
+model CatalogoItem {
+  id                   String             @id @default(uuid())
+  tipo                 TipoItem
+  nombre               String
+  precioActualCentavos Int
+  activo               Boolean            @default(true)
+  confirmacionItems    ConfirmacionItem[]
+}
+
+model Confirmacion {
+  id                    String                   @id @default(uuid())
+  clienteId             String                   @unique
+  fechaHoraEvento       DateTime
+  descuentoServiciosPct Int
+  descuentoProductosPct Int
+  creadoEn              DateTime                 @default(now())
+  actualizadoEn         DateTime                 @updatedAt
+  cliente               Cliente                  @relation(fields: [clienteId], references: [id])
+  items                 ConfirmacionItem[]
+  historial             ConfirmacionHistorial[]
+}
+
+model ConfirmacionItem {
+  id                      String           @id @default(uuid())
+  confirmacionId          String
+  catalogoItemId          String
+  tipo                    TipoItem
+  nombreCongelado         String
+  precioCongeladoCentavos Int
+  confirmacion            Confirmacion     @relation(fields: [confirmacionId], references: [id])
+  catalogoItem            CatalogoItem     @relation(fields: [catalogoItemId], references: [id])
+}
+
+model ConfirmacionHistorial {
+  id             String       @id @default(uuid())
+  confirmacionId String
+  estadoAnterior Json
+  editadoEn      DateTime     @default(now())
+  confirmacion   Confirmacion @relation(fields: [confirmacionId], references: [id])
+}
+
+model UsuarioVentas {
+  id           String @id @default(uuid())
+  username     String @unique
+  passwordHash String
+}

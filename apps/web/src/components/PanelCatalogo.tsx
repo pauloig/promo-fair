@@ -12,6 +12,10 @@ type Props = {
   seleccionados: ReadonlySet<string>;
   onAlternar: (id: string) => void;
   resumen: ResumenDescuentos;
+  cargando: boolean;
+  error: string | null;
+  sinResultados: boolean;
+  onReintentar: () => void;
 };
 
 export function PanelCatalogo({
@@ -21,10 +25,17 @@ export function PanelCatalogo({
   seleccionados,
   onAlternar,
   resumen,
+  cargando,
+  error,
+  sinResultados,
+  onReintentar,
 }: Props) {
   return (
     <section className="flex flex-col gap-3">
-      <EncabezadoSeccion numero={2} titulo="Seleccione Servicios y Productos de su interés" />
+      <EncabezadoSeccion
+        numero={2}
+        titulo="Seleccione Servicios y Productos de su interés"
+      />
 
       <div className="flex max-h-[480px] flex-col gap-4 rounded-xl bg-carbon p-5">
         <div className="relative">
@@ -46,9 +57,26 @@ export function PanelCatalogo({
         </p>
 
         <ul className="lista-oscura flex max-h-60 flex-col gap-2 overflow-y-auto pr-1">
-          {filtrados.length === 0 ? (
+          {cargando ? (
             <li className="rounded-lg bg-white/5 px-3 py-3 text-center text-sm text-white/60">
-              No se encontró ningún elemento para “{busqueda}”.
+              Consultando el catálogo…
+            </li>
+          ) : error !== null ? (
+            <li className="flex flex-col gap-2 rounded-lg bg-hoja/10 px-3 py-3 text-center text-sm text-white/80">
+              <span>No se pudo cargar el catálogo. {error}</span>
+              <button
+                type="button"
+                onClick={onReintentar}
+                className="mx-auto rounded-full bg-hoja px-4 py-1.5 text-xs font-bold text-carbon transition-colors hover:bg-hoja-oscuro focus:outline-none focus:ring-2 focus:ring-hoja"
+              >
+                Reintentar
+              </button>
+            </li>
+          ) : sinResultados ? (
+            <li className="rounded-lg bg-white/5 px-3 py-3 text-center text-sm text-white/60">
+              {busqueda.trim() === ""
+                ? "El catálogo está vacío."
+                : `No se encontró ningún elemento para “${busqueda}”.`}
             </li>
           ) : (
             filtrados.map((item) => {
@@ -71,7 +99,9 @@ export function PanelCatalogo({
                       <IconoCheck />
                     </span>
                     <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-sm leading-snug text-white">{item.nombre}</span>
+                      <span className="text-sm leading-snug text-white">
+                        {item.nombre}
+                      </span>
                       <EtiquetaTipo tipo={item.tipo} />
                     </span>
                     <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-white">

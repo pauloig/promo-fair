@@ -1,26 +1,72 @@
-import { useMemo, useState } from "react";
-import { CATALOGO } from "../lib/catalogo";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { obtenerCatalogo } from "../lib/api";
+import { DATOS_VACIOS, type DatosCliente } from "../lib/datos";
 import { calcularDescuentos } from "../lib/descuentos";
-import { DATOS_VACIOS } from "../lib/datos";
-import type { DatosCliente } from "../lib/datos";
+
+const DEBOUNCE_MS = 300;
+
+function mensajeError(error: unknown): string {
+  if (error instanceof TypeError) return "No se pudo conectar con la API.";
+  return error instanceof Error
+    ? error.message
+    : "No se pudo consultar el catálogo.";
+}
 
 export function useConfirmacion() {
   const [busqueda, setBusqueda] = useState("");
-  const [seleccionados, setSeleccionados] = useState<ReadonlySet<string>>(new Set());
+  const [termino, setTermino] = useState("");
+  const [seleccionados, setSeleccionados] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
   const [datosCliente, setDatosCliente] = useState<DatosCliente>(DATOS_VACIOS);
   const [confirmada, setConfirmada] = useState(false);
 
-  const filtrados = useMemo(
-    () =>
-      CATALOGO.filter((item) =>
-        item.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()),
-      ),
-    [busqueda],
-  );
+  useEffect(() => {
+    const temporizador = window.setTimeout(() => {
+      setTermino(busqueda.trim());
+    }, DEBOUNCE_MS);
+    return () => window.clearTimeout(temporizador);
+  }, [busqueda]);
+
+  const catalogo = useQuery({
+    queryKey: ["catalogo", "completo"],
+    queryFn: () => obtenerCatalogo(""),
+  });
+
+  const resultados = useQuery({
+    queryKey: ["catalogo", "buscar", termino],
+    queryFn: () => obtenerCatalogo(termino),
+    enabled: termino !== "",
+    placeholderData: keepPreviousData,
+  });
+
+  const hayBusqueda = termino !== "";
+
+  const filtrados = hayBusqueda
+    ? (resultados.data ?? catalogo.data ?? [])
+    : (catalogo.data ?? []);
+
+  const errorActivo = hayBusqueda ? resultados.error : catalogo.error;
+  const sinDatosActivos = hayBusqueda
+    ? resultados.data === undefined
+    : catalogo.data === undefined;
+
+  const catalogoCargando =
+    errorActivo === null &&
+    sinDatosActivos &&
+    (hayBusqueda ? resultados.isFetching : catalogo.isFetching);
+
+  const catalogoError = errorActivo === null ? null : mensajeError(errorActivo);
+  const catalogoSinResultados =
+    !catalogoCargando && catalogoError === null && filtrados.length === 0;
 
   const resumen = useMemo(
-    () => calcularDescuentos(CATALOGO.filter((item) => seleccionados.has(item.id))),
-    [seleccionados],
+    () =>
+      calcularDescuentos(
+        (catalogo.data ?? []).filter((item) => seleccionados.has(item.id)),
+      ),
+    [catalogo.data, seleccionados],
   );
 
   const datosCompletos =
@@ -51,6 +97,11 @@ export function useConfirmacion() {
     });
   }
 
+  function reintentarCatalogo(): void {
+    const activa = hayBusqueda ? resultados : catalogo;
+    void activa.refetch();
+  }
+
   function confirmar(): void {
     setConfirmada(true);
   }
@@ -59,6 +110,10 @@ export function useConfirmacion() {
     busqueda,
     setBusqueda,
     filtrados,
+    catalogoCargando,
+    catalogoError,
+    catalogoSinResultados,
+    reintentarCatalogo,
     seleccionados,
     alternarItem,
     resumen,

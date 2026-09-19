@@ -8,4 +8,4 @@ allowBuilds:
   prisma: true
   "@prisma/engines": true
   workerd: true
-  '@scarf/scarf': set this to true or false
+  '@scarf/scarf': false

@@ -15,7 +15,10 @@ export function PantallaMockup() {
 
         <main className="flex flex-col gap-8 px-6 py-6 sm:px-8">
           <div className="grid items-start gap-8 md:grid-cols-2">
-            <FormularioDatos valor={confirmacion.datosCliente} onChange={confirmacion.cambiarDato} />
+            <FormularioDatos
+              valor={confirmacion.datosCliente}
+              onChange={confirmacion.cambiarDato}
+            />
             <PanelCatalogo
               filtrados={confirmacion.filtrados}
               busqueda={confirmacion.busqueda}
@@ -23,6 +26,10 @@ export function PantallaMockup() {
               seleccionados={confirmacion.seleccionados}
               onAlternar={confirmacion.alternarItem}
               resumen={confirmacion.resumen}
+              cargando={confirmacion.catalogoCargando}
+              error={confirmacion.catalogoError}
+              sinResultados={confirmacion.catalogoSinResultados}
+              onReintentar={confirmacion.reintentarCatalogo}
             />
           </div>
 

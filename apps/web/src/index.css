@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+
+  --color-agro-950: #10241a;
+  --color-agro-900: #16301f;
+  --color-agro-800: #1e3f2a;
+  --color-agro-700: #285936;
+  --color-agro-600: #327244;
+  --color-agro-100: #e0ede2;
+
+  --color-hoja-500: #9bbf3a;
+  --color-hoja-600: #7fa32a;
+  --color-hoja-700: #66821f;
+
+  --color-papel: #f7f5ee;
+  --color-tinta: #1e2b24;
+  --color-ceniza: #5f6b64;
+  --color-linea: #dce1d6;
+}
+
+@layer base {
+  html {
+    scrollbar-color: var(--color-agro-800) var(--color-papel);
+  }
+
+  body {
+    background-color: var(--color-papel);
+    color: var(--color-tinta);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer utilities {
+  .perforacion {
+    border-top: 1.5px dashed var(--color-agro-600);
+  }
+}

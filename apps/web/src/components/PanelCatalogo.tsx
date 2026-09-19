@@ -32,7 +32,7 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
     <section className="flex flex-col gap-3">
       <EncabezadoSeccion numero={2} titulo="Seleccione Servicios y Productos de su interés" />
 
-      <div className="flex max-h-[480px] flex-col gap-4 rounded-xl bg-carbon p-4">
+      <div className="flex max-h-[480px] flex-col gap-4 rounded-xl bg-carbon p-5">
         <div className="relative">
           <input
             type="search"
@@ -40,7 +40,7 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
             onChange={(evento) => setBusqueda(evento.target.value)}
             placeholder="Buscar Servicios y Productos"
             aria-label="Buscar Servicios y Productos"
-            className="h-11 w-full rounded-full border-none bg-white pl-4 pr-12 text-sm text-[#2d3436] placeholder:text-[#9aa0a6] focus:outline-none focus:ring-2 focus:ring-verde/50"
+            className="h-11 w-full rounded-full border-none bg-white pl-4 pr-12 text-sm text-[#2d3436] placeholder:text-[#6b7280] transition-colors hover:ring-1 hover:ring-verde/40 focus:outline-none focus:ring-2 focus:ring-verde/50"
           />
           <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#6b7280]">
             <IconoLupa />
@@ -65,7 +65,7 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
                     type="button"
                     onClick={() => onAlternar(item.id)}
                     aria-pressed={seleccionado}
-                    className="flex w-full items-center gap-3 rounded-lg bg-white/5 px-3 py-2.5 text-left hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-verde/50"
+                    className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg bg-white/5 px-3 py-2 text-left transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-verde/50"
                   >
                     <span
                       className={
@@ -76,15 +76,15 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
                     >
                       <IconoCheck />
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-white">
-                      {item.nombre}
+                    <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-sm leading-snug text-white">{item.nombre}</span>
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${CLASES_BADGE[item.tipo]}`}
+                      >
+                        {item.tipo === "SERVICIO" ? "Servicio" : "Producto"}
+                      </span>
                     </span>
-                    <span
-                      className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${CLASES_BADGE[item.tipo]}`}
-                    >
-                      {item.tipo === "SERVICIO" ? "Servicio" : "Producto"}
-                    </span>
-                    <span className="shrink-0 text-sm font-semibold text-white">
+                    <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-white">
                       {formatearPrecioQ(item.precioCentavos)}
                     </span>
                   </button>
@@ -94,7 +94,11 @@ export function PanelCatalogo({ seleccionados, onAlternar, resumen }: Props) {
           )}
         </ul>
 
-        <div className="grid grid-cols-2 divide-x divide-white/15 border-t border-white/15 pt-3">
+        <div
+          className="grid grid-cols-2 divide-x divide-white/15 border-t border-white/15 pt-3"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <div className="flex flex-col items-center gap-1">
             <span className="text-center text-xs leading-snug text-white/70">
               Descuento obtenido en Servicios

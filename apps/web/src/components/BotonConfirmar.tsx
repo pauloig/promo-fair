@@ -38,8 +38,8 @@ export function BotonConfirmar({
         disabled={!puedeConfirmar}
         className={
           puedeConfirmar
-            ? "inline-flex items-center gap-2.5 rounded-lg bg-indigo-600 px-10 py-3 text-sm font-bold tracking-wide text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
-            : "inline-flex cursor-not-allowed items-center gap-2.5 rounded-lg bg-[#9ca3af] px-10 py-3 text-sm font-bold tracking-wide text-white/80"
+            ? "inline-flex items-center gap-2.5 rounded-lg bg-indigo-600 px-10 py-3 text-sm font-bold tracking-wide text-white transition hover:bg-indigo-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 active:scale-[0.98]"
+            : "inline-flex cursor-not-allowed items-center gap-2.5 rounded-lg border border-[#8a9199] bg-[#9ca3af] px-10 py-3 text-sm font-bold tracking-wide text-[#3b434c]"
         }
       >
         CONFIRMAR ASISTENCIA

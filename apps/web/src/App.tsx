@@ -48,8 +48,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gris-pagina px-4 py-6 sm:py-10">
-      <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl bg-gris-claro shadow-lg">
+    <div className="min-h-screen bg-gris-pagina px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-6xl overflow-hidden rounded-2xl bg-gris-claro shadow-lg">
         <Encabezado />
 
         <main className="flex flex-col gap-8 px-6 py-6 sm:px-8">

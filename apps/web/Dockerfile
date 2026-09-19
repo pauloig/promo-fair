@@ -13,6 +13,7 @@ ARG VITE_API_URL=/api
 ENV VITE_API_URL=${VITE_API_URL}
 
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @disagro/shared build
 RUN pnpm --filter @disagro/web build
 
 # Stage final: sirve los estáticos con nginx

@@ -15,6 +15,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         VITE_API_URL: /api
+      network: host
     depends_on:
       - api
 
@@ -22,6 +23,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      network: host
     environment:
       PORT: "3000"
       NODE_ENV: production

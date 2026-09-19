@@ -9,11 +9,20 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 COPY apps apps
 COPY packages packages
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --config.package-import-method=copy --config.verifyDepsBeforeRun=false
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm --filter @disagro/shared build
+RUN cd apps/api && DATABASE_URL="postgresql://disagro:disagro@localhost:5432/disagro" pnpm exec prisma generate
 RUN pnpm --filter @disagro/api build
-RUN pnpm --filter @disagro/api deploy --prod /prod
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm --filter @disagro/api deploy --prod /prod --config.package-import-method=copy --config.verifyDepsBeforeRun=false
+RUN cp -r apps/api/prisma /prod/prisma \
+    && cd /prod \
+    && DATABASE_URL="postgresql://disagro:disagro@localhost:5432/disagro" /app/apps/api/node_modules/.bin/prisma generate \
+    && rm -rf /prod/prisma
 
-# Stage final: solo build compilado y dependencias de producción
+# Stage final: solo runtime autocontenido (pnpm deploy) + build compilado
 FROM node:24-alpine
 
 WORKDIR /app

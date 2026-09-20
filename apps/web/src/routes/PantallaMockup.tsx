@@ -2,6 +2,7 @@ import { BotonConfirmar } from "../components/BotonConfirmar";
 import { Encabezado } from "../components/Encabezado";
 import { FormularioDatos } from "../components/FormularioDatos";
 import { PanelCatalogo } from "../components/PanelCatalogo";
+import { PantallaCargaInicial } from "../components/PantallaCargaInicial";
 import { PantallaConfirmada } from "../components/PantallaConfirmada";
 import { Pie } from "../components/Pie";
 import { useConfirmacion } from "../hooks/useConfirmacion";
@@ -9,11 +10,19 @@ import { useConfirmacion } from "../hooks/useConfirmacion";
 export function PantallaMockup() {
   const confirmacion = useConfirmacion();
 
-  if (confirmacion.confirmada && confirmacion.resumenConfirmacion !== null) {
+  if (confirmacion.recuperando) {
+    return <PantallaCargaInicial />;
+  }
+
+  if (
+    confirmacion.mostrarConfirmacion &&
+    confirmacion.resumenAMostrar !== null
+  ) {
     return (
       <PantallaConfirmada
-        resumen={confirmacion.resumenConfirmacion}
+        resumen={confirmacion.resumenAMostrar}
         nombre={confirmacion.nombre}
+        onEditar={confirmacion.editar}
       />
     );
   }

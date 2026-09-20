@@ -24,6 +24,7 @@ export const ConfirmacionInputSchema = z.object({
 
 export const ConfirmacionItemResumenSchema = z.object({
   id: z.uuid(),
+  catalogoItemId: z.uuid(),
   tipo: TipoItemSchema,
   nombreCongelado: z.string().trim().min(1),
   precioCongeladoCentavos: z.number().int().min(0),
@@ -34,6 +35,23 @@ export const ConfirmacionResumenSchema = z.object({
   items: z.array(ConfirmacionItemResumenSchema),
   descuentoServiciosPct: z.number().int().min(0),
   descuentoProductosPct: z.number().int().min(0),
+});
+
+export const ConfirmacionPropiaItemSchema = z.object({
+  id: z.uuid(),
+  catalogoItemId: z.uuid(),
+  tipo: TipoItemSchema,
+  nombreCongelado: z.string().trim().min(1),
+  precioCongeladoCentavos: z.number().int().min(0),
+});
+
+export const ConfirmacionPropiaSchema = z.object({
+  id: z.uuid(),
+  fechaHoraEvento: z.iso.datetime({ offset: true }),
+  descuentoServiciosPct: z.number().int().min(0),
+  descuentoProductosPct: z.number().int().min(0),
+  cliente: ClienteSchema,
+  items: z.array(ConfirmacionPropiaItemSchema),
 });
 
 export const VentasLoginInputSchema = z.object({
@@ -94,6 +112,7 @@ export type ConfirmacionItemResumen = z.infer<
   typeof ConfirmacionItemResumenSchema
 >;
 export type ConfirmacionResumen = z.infer<typeof ConfirmacionResumenSchema>;
+export type ConfirmacionPropia = z.infer<typeof ConfirmacionPropiaSchema>;
 export type VentasLoginInput = z.infer<typeof VentasLoginInputSchema>;
 export type VentasFiltros = z.infer<typeof VentasFiltrosSchema>;
 export type VentasItemFila = z.infer<typeof VentasItemFilaSchema>;

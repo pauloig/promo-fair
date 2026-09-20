@@ -16,9 +16,10 @@ const TITULO_POR_TIPO: Record<TipoItem, string> = {
 type Props = {
   resumen: ConfirmacionResumen;
   nombre: string;
+  onEditar?: () => void;
 };
 
-export function PantallaConfirmada({ resumen, nombre }: Props) {
+export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
   const itemsServicios = resumen.items.filter(
     (item) => item.tipo === "SERVICIO",
   );
@@ -150,6 +151,18 @@ export function PantallaConfirmada({ resumen, nombre }: Props) {
             el sistema registró en el momento de su confirmación.
           </p>
         </section>
+
+        {onEditar !== undefined && (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={onEditar}
+              className="rounded-xl border border-hoja/60 bg-white px-5 py-3 text-sm font-black text-hoja-oscuro transition-colors hover:bg-hoja/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-hoja"
+            >
+              Editar mi confirmación
+            </button>
+          </div>
+        )}
       </main>
 
       <Pie />

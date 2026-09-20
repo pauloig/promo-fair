@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import type { TipoItem } from "@disagro/shared";
+import { ClienteDto } from "./confirmacion-input.dto.js";
 
 export class ConfirmacionItemPersistido {
   @ApiProperty({
@@ -7,6 +8,14 @@ export class ConfirmacionItemPersistido {
     format: "uuid",
   })
   readonly id!: string;
+
+  @ApiProperty({
+    description:
+      "Identificador (UUID) del ítem del catálogo seleccionado. Permite al " +
+      "frontend reconstruir la selección previa al editar.",
+    format: "uuid",
+  })
+  readonly catalogoItemId!: string;
 
   @ApiProperty({
     description: "Categoría del ítem congelada al confirmar.",
@@ -21,7 +30,8 @@ export class ConfirmacionItemPersistido {
   readonly nombreCongelado!: string;
 
   @ApiProperty({
-    description: "Precio del ítem en centavos, congelado al momento de confirmar (ADR-007).",
+    description:
+      "Precio del ítem en centavos, congelado al momento de confirmar (ADR-007).",
     example: 34000,
     minimum: 0,
   })
@@ -51,14 +61,16 @@ export class ConfirmacionResumenDto {
   readonly items!: ConfirmacionItemPersistido[];
 
   @ApiProperty({
-    description: "Porcentaje de descuento aplicado sobre el subtotal de Servicios.",
+    description:
+      "Porcentaje de descuento aplicado sobre el subtotal de Servicios.",
     example: 5,
     minimum: 0,
   })
   readonly descuentoServiciosPct!: number;
 
   @ApiProperty({
-    description: "Porcentaje de descuento aplicado sobre el subtotal de Productos.",
+    description:
+      "Porcentaje de descuento aplicado sobre el subtotal de Productos.",
     example: 5,
     minimum: 0,
   })
@@ -72,6 +84,7 @@ export function toConfirmacionResumen(
     id: confirmacion.id,
     items: confirmacion.items.map((item) => ({
       id: item.id,
+      catalogoItemId: item.catalogoItemId,
       tipo: item.tipo,
       nombreCongelado: item.nombreCongelado,
       precioCongeladoCentavos: item.precioCongeladoCentavos,
@@ -89,24 +102,35 @@ export class ConfirmacionPropia {
   readonly id!: string;
 
   @ApiProperty({
-    description: "Fecha y hora del evento seleccionada por el cliente (ISO 8601).",
+    description:
+      "Fecha y hora del evento seleccionada por el cliente (ISO 8601).",
     format: "date-time",
   })
   readonly fechaHoraEvento!: string;
 
   @ApiProperty({
-    description: "Porcentaje de descuento aplicado sobre el subtotal de Servicios.",
+    description:
+      "Porcentaje de descuento aplicado sobre el subtotal de Servicios.",
     example: 5,
     minimum: 0,
   })
   readonly descuentoServiciosPct!: number;
 
   @ApiProperty({
-    description: "Porcentaje de descuento aplicado sobre el subtotal de Productos.",
+    description:
+      "Porcentaje de descuento aplicado sobre el subtotal de Productos.",
     example: 5,
     minimum: 0,
   })
   readonly descuentoProductosPct!: number;
+
+  @ApiProperty({
+    description:
+      "Datos del cliente registrados en la confirmación. Permiten prellenar " +
+      "el formulario al editar (ADR-003).",
+    type: () => ClienteDto,
+  })
+  readonly cliente!: ClienteDto;
 
   @ApiProperty({
     description: "Ítems seleccionados con su nombre y precio congelados.",
@@ -117,13 +141,22 @@ export class ConfirmacionPropia {
 }
 
 export function toConfirmacionPropia(
-  confirmacion: ConfirmacionConItems & { fechaHoraEvento: Date },
+  confirmacion: ConfirmacionConItems & {
+    fechaHoraEvento: Date;
+    cliente: { nombre: string; apellidos: string; email: string };
+  },
 ): ConfirmacionPropia {
   return {
     id: confirmacion.id,
     fechaHoraEvento: confirmacion.fechaHoraEvento.toISOString(),
+    cliente: {
+      nombre: confirmacion.cliente.nombre,
+      apellidos: confirmacion.cliente.apellidos,
+      email: confirmacion.cliente.email,
+    },
     items: confirmacion.items.map((item) => ({
       id: item.id,
+      catalogoItemId: item.catalogoItemId,
       tipo: item.tipo,
       nombreCongelado: item.nombreCongelado,
       precioCongeladoCentavos: item.precioCongeladoCentavos,

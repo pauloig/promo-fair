@@ -1,5 +1,6 @@
 import type {
   ConfirmacionInput,
+  ConfirmacionPropia,
   ConfirmacionResumen,
   VentasConfirmacionesRespuesta,
   VentasFiltros,
@@ -77,6 +78,21 @@ export async function enviarConfirmacion(
   }
 
   return (await respuesta.json()) as ConfirmacionResumen;
+}
+
+export async function obtenerMiConfirmacion(): Promise<ConfirmacionPropia | null> {
+  const respuesta = await fetch(`${BASE_API}/confirmaciones/mia`, {
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  });
+
+  if (respuesta.status === 401 || respuesta.status === 404) return null;
+
+  if (!respuesta.ok) {
+    throw new Error(await mensajeDe(respuesta));
+  }
+
+  return (await respuesta.json()) as ConfirmacionPropia;
 }
 
 async function mensajeDe(respuesta: Response): Promise<string> {

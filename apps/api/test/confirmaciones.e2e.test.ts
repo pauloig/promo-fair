@@ -75,7 +75,9 @@ function normalizarItems(
     }));
 }
 
-function resumenEsperadoDeCatalogo(nombres: string[]): ItemResumenNormalizado[] {
+function resumenEsperadoDeCatalogo(
+  nombres: string[],
+): ItemResumenNormalizado[] {
   return normalizarItems(
     nombres.map((nombre) => {
       const item = catalogo[nombre];
@@ -110,9 +112,13 @@ beforeAll(async () => {
 
   process.env.DATABASE_URL = testDatabaseUrl;
 
-  prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: testDatabaseUrl }) });
+  prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: testDatabaseUrl }),
+  });
 
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const moduleRef = await Test.createTestingModule({
+    imports: [AppModule],
+  }).compile();
   app = moduleRef.createNestApplication();
   configureApp(app);
   await app.init();
@@ -123,7 +129,9 @@ afterAll(async () => {
   await prisma?.$disconnect();
   if (adminPool) {
     const databaseName = new URL(testDatabaseUrl).pathname.slice(1);
-    await adminPool.query(`DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`);
+    await adminPool.query(
+      `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`,
+    );
     await adminPool.end();
   }
   if (originalDatabaseUrl !== undefined) {
@@ -180,7 +188,9 @@ describe("POST /api/confirmaciones — cliente nuevo", () => {
     expect(resumen.id).toEqual(expect.any(String));
     expect(resumen.descuentoServiciosPct).toBe(3);
     expect(resumen.descuentoProductosPct).toBe(3);
-    expect(normalizarItems(resumen.items)).toEqual(resumenEsperadoDeCatalogo(seleccion));
+    expect(normalizarItems(resumen.items)).toEqual(
+      resumenEsperadoDeCatalogo(seleccion),
+    );
 
     const cliente = await prisma.cliente.findUniqueOrThrow({
       where: { email },
@@ -189,23 +199,31 @@ describe("POST /api/confirmaciones — cliente nuevo", () => {
 
     expect(cliente.confirmacion).not.toBeNull();
     const confirmacion = cliente.confirmacion!;
-    expect(confirmacion.fechaHoraEvento.getTime()).toBe(new Date(fechaHoraEvento).getTime());
+    expect(confirmacion.fechaHoraEvento.getTime()).toBe(
+      new Date(fechaHoraEvento).getTime(),
+    );
     expect(confirmacion.descuentoServiciosPct).toBe(3);
     expect(confirmacion.descuentoProductosPct).toBe(3);
     expect(confirmacion.items).toHaveLength(5);
     expect(confirmacion.historial).toHaveLength(0);
-    expect(normalizarItems(confirmacion.items)).toEqual(resumenEsperadoDeCatalogo(seleccion));
+    expect(normalizarItems(confirmacion.items)).toEqual(
+      resumenEsperadoDeCatalogo(seleccion),
+    );
 
     const setCookie = respuesta.headers["set-cookie"];
     expect(setCookie).toBeDefined();
-    const cookieCompleta = Array.isArray(setCookie) ? setCookie.join("; ") : String(setCookie);
+    const cookieCompleta = Array.isArray(setCookie)
+      ? setCookie.join("; ")
+      : String(setCookie);
     expect(cookieCompleta).toContain(`${COOKIE_DE_SESION}=`);
     expect(cookieCompleta).toMatch(/HttpOnly/i);
     expect(cookieCompleta).toMatch(/Secure/i);
     expect(cookieCompleta).toMatch(/SameSite=Lax/i);
     expect(cookieCompleta).toMatch(/Max-Age=2592000/i);
 
-    const token = cookieCompleta.match(new RegExp(`${COOKIE_DE_SESION}=([^;]+)`))![1];
+    const token = cookieCompleta.match(
+      new RegExp(`${COOKIE_DE_SESION}=([^;]+)`),
+    )![1];
     const payload = jwt.verify(token, JWT_SECRET_E2E) as { sub?: string };
     expect(payload.sub).toBe(cliente.id);
   });
@@ -272,7 +290,9 @@ describe("POST /api/confirmaciones — cliente existente", () => {
 
     expect(confirmacion.id).toBe(idPrimera);
     expect(confirmacion.items).toHaveLength(6);
-    expect(confirmacion.fechaHoraEvento.getTime()).toBe(new Date(segundaFecha).getTime());
+    expect(confirmacion.fechaHoraEvento.getTime()).toBe(
+      new Date(segundaFecha).getTime(),
+    );
     expect(confirmacion.descuentoServiciosPct).toBe(5);
     expect(confirmacion.descuentoProductosPct).toBe(3);
 
@@ -285,10 +305,14 @@ describe("POST /api/confirmaciones — cliente existente", () => {
       items: ItemResumenNormalizado[];
     };
 
-    expect(estadoAnterior.fechaHoraEvento).toBe(new Date(primeraFecha).toISOString());
+    expect(estadoAnterior.fechaHoraEvento).toBe(
+      new Date(primeraFecha).toISOString(),
+    );
     expect(estadoAnterior.descuentoServiciosPct).toBe(3);
     expect(estadoAnterior.descuentoProductosPct).toBe(3);
-    expect(normalizarItems(estadoAnterior.items)).toEqual(resumenEsperadoDeCatalogo(primeraSeleccion));
+    expect(normalizarItems(estadoAnterior.items)).toEqual(
+      resumenEsperadoDeCatalogo(primeraSeleccion),
+    );
   });
 });
 
@@ -327,7 +351,11 @@ describe("POST /api/confirmaciones — validaciones", () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/confirmaciones")
       .send({
-        cliente: { nombre: "Cliente", apellidos: "De Prueba", email: "body.invalido@example.com" },
+        cliente: {
+          nombre: "Cliente",
+          apellidos: "De Prueba",
+          email: "body.invalido@example.com",
+        },
         fechaHoraEvento: "2026-11-21T10:00:00-06:00",
         itemIds: [],
       })
@@ -364,8 +392,12 @@ describe("GET /api/confirmaciones/mia — sesión de cliente", () => {
       .expect(201);
 
     const setCookie = emision.headers["set-cookie"];
-    const cookieCompleta = Array.isArray(setCookie) ? setCookie.join("; ") : String(setCookie);
-    const token = cookieCompleta.match(new RegExp(`${COOKIE_DE_SESION}=([^;]+)`))![1];
+    const cookieCompleta = Array.isArray(setCookie)
+      ? setCookie.join("; ")
+      : String(setCookie);
+    const token = cookieCompleta.match(
+      new RegExp(`${COOKIE_DE_SESION}=([^;]+)`),
+    )![1];
 
     const respuesta = await request(app.getHttpServer())
       .get("/api/confirmaciones/mia")
@@ -377,9 +409,23 @@ describe("GET /api/confirmaciones/mia — sesión de cliente", () => {
       fechaHoraEvento: new Date(fechaHoraEvento).toISOString(),
       descuentoServiciosPct: 5,
       descuentoProductosPct: 3,
+      cliente: {
+        nombre: "Cliente",
+        apellidos: "De Prueba",
+        email,
+      },
     });
     expect(respuesta.body.items).toHaveLength(6);
-    expect(normalizarItems(respuesta.body.items)).toEqual(resumenEsperadoDeCatalogo(seleccion));
+    expect(normalizarItems(respuesta.body.items)).toEqual(
+      resumenEsperadoDeCatalogo(seleccion),
+    );
+
+    const catalogoItemIds = seleccion.map((nombre) => catalogo[nombre].id);
+    expect(
+      respuesta.body.items.map(
+        (item: { catalogoItemId: string }) => item.catalogoItemId,
+      ),
+    ).toEqual(expect.arrayContaining(catalogoItemIds));
   });
 
   it("responde 401 cuando la cookie contiene un token inválido", async () => {
@@ -405,9 +451,13 @@ describe("GET /api/confirmaciones/mia — sesión de cliente", () => {
   });
 
   it("responde 404 cuando el cliente autenticado no tiene confirmación", async () => {
-    const sinConfirmacion = jwt.sign({ sub: "cliente-sin-confirmacion" }, JWT_SECRET_E2E, {
-      expiresIn: "1h",
-    });
+    const sinConfirmacion = jwt.sign(
+      { sub: "cliente-sin-confirmacion" },
+      JWT_SECRET_E2E,
+      {
+        expiresIn: "1h",
+      },
+    );
 
     const respuesta = await request(app.getHttpServer())
       .get("/api/confirmaciones/mia")

@@ -42,7 +42,9 @@ export class ConfirmacionesService {
         where: { id: { in: itemIdsUnicos }, activo: true },
       });
 
-      const catalogoPorId = new Map(itemsCatalogo.map((item) => [item.id, item]));
+      const catalogoPorId = new Map(
+        itemsCatalogo.map((item) => [item.id, item]),
+      );
       const faltantes = itemIdsUnicos.filter((id) => !catalogoPorId.has(id));
 
       if (faltantes.length > 0) {
@@ -51,7 +53,9 @@ export class ConfirmacionesService {
         );
       }
 
-      const itemsSeleccionados = itemIdsUnicos.map((id) => catalogoPorId.get(id)!);
+      const itemsSeleccionados = itemIdsUnicos.map((id) =>
+        catalogoPorId.get(id)!,
+      );
 
       const descuentos = calcularDescuentos(
         itemsSeleccionados.map((item) => ({
@@ -133,11 +137,9 @@ export class ConfirmacionesService {
         });
       }
 
-      const token = jwt.sign(
-        { sub: confirmacion.clienteId },
-        this.jwt.secret,
-        { expiresIn: `${this.jwt.expiracionDias}d` },
-      );
+      const token = jwt.sign({ sub: confirmacion.clienteId }, this.jwt.secret, {
+        expiresIn: `${this.jwt.expiracionDias}d`,
+      });
 
       return { resumen: toConfirmacionResumen(confirmacion), token };
     });
@@ -146,7 +148,7 @@ export class ConfirmacionesService {
   async mia(clienteId: string): Promise<ConfirmacionPropia> {
     const confirmacion = await this.prisma.confirmacion.findUnique({
       where: { clienteId },
-      include: { items: true },
+      include: { items: true, cliente: true },
     });
 
     if (!confirmacion) {

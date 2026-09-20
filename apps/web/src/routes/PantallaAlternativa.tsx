@@ -2,6 +2,7 @@ import { EncabezadoSeccion } from "../components/EncabezadoSeccion";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { FormularioDatos } from "../components/FormularioDatos";
 import { IconoCheck, IconoLupa } from "../components/Iconos";
+import { PantallaCargaInicial } from "../components/PantallaCargaInicial";
 import { PantallaConfirmada } from "../components/PantallaConfirmada";
 import { Pie } from "../components/Pie";
 import { useConfirmacion } from "../hooks/useConfirmacion";
@@ -87,9 +88,17 @@ function umbrales(tipo: TipoItem, categoria: ResumenCategoria): Umbral[] {
 export function PantallaAlternativa() {
   const c = useConfirmacion();
 
-  if (c.confirmada && c.resumenConfirmacion !== null) {
+  if (c.recuperando) {
+    return <PantallaCargaInicial />;
+  }
+
+  if (c.mostrarConfirmacion && c.resumenAMostrar !== null) {
     return (
-      <PantallaConfirmada resumen={c.resumenConfirmacion} nombre={c.nombre} />
+      <PantallaConfirmada
+        resumen={c.resumenAMostrar}
+        nombre={c.nombre}
+        onEditar={c.editar}
+      />
     );
   }
 

@@ -1,16 +1,22 @@
 import {
   ConfirmacionInputSchema,
   type ConfirmacionInput,
+  type ConfirmacionPropia,
   type ConfirmacionResumen,
 } from "@disagro/shared/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Control, FieldErrors } from "react-hook-form";
 import {
   enviarConfirmacion,
   obtenerCatalogo,
+  obtenerMiConfirmacion,
   obtenerRangoFecha,
   type RangoFecha,
 } from "../lib/api";
@@ -43,12 +49,14 @@ function estaDentroDelRango(
 }
 
 export function useConfirmacion() {
+  const queryClient = useQueryClient();
   const [busqueda, setBusqueda] = useState("");
   const [termino, setTermino] = useState("");
   const [seleccionados, setSeleccionados] = useState<ReadonlySet<string>>(
     new Set(),
   );
   const [confirmada, setConfirmada] = useState(false);
+  const [editando, setEditando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
   const [resumenConfirmacion, setResumenConfirmacion] =
@@ -61,6 +69,31 @@ export function useConfirmacion() {
     defaultValues: FORMULARIO_VACIO,
   });
   const { control, formState } = form;
+
+  const miConfirmacion = useQuery({
+    queryKey: ["confirmaciones", "mia"],
+    queryFn: obtenerMiConfirmacion,
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  const prellenado = useRef(false);
+
+  useEffect(() => {
+    const propios = miConfirmacion.data;
+    if (propios === undefined || propios === null || prellenado.current) return;
+    prellenado.current = true;
+    form.reset({
+      cliente: {
+        nombre: propios.cliente.nombre,
+        apellidos: propios.cliente.apellidos,
+        email: propios.cliente.email,
+      },
+      fechaHoraEvento: propios.fechaHoraEvento,
+      itemIds: propios.items.map((item) => item.catalogoItemId),
+    });
+    setSeleccionados(new Set(propios.items.map((item) => item.catalogoItemId)));
+  }, [form, miConfirmacion.data]);
 
   useEffect(() => {
     const temporizador = window.setTimeout(() => {
@@ -172,7 +205,11 @@ export function useConfirmacion() {
       try {
         const resumen = await enviarConfirmacion(datos);
         setResumenConfirmacion(resumen);
+        setEditando(false);
         setConfirmada(true);
+        await queryClient.invalidateQueries({
+          queryKey: ["confirmaciones", "mia"],
+        });
       } catch (error) {
         setErrorEnvio(mensajeError(error));
       } finally {
@@ -180,6 +217,21 @@ export function useConfirmacion() {
       }
     })();
   }
+
+  function editar(): void {
+    setEditando(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const recuperando = miConfirmacion.isLoading;
+
+  const mostrarConfirmacion =
+    (confirmada && resumenConfirmacion !== null) ||
+    (!editando && miConfirmacion.data !== null);
+
+  const resumenAMostrar: ConfirmacionResumen | null = confirmada
+    ? resumenConfirmacion
+    : (miConfirmacion.data ?? null);
 
   return {
     busqueda,
@@ -206,5 +258,9 @@ export function useConfirmacion() {
     enviando,
     errorEnvio,
     resumenConfirmacion,
+    recuperando,
+    mostrarConfirmacion,
+    resumenAMostrar,
+    editar,
   };
 }

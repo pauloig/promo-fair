@@ -2,13 +2,20 @@ import "reflect-metadata";
 import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import type { ConfigType } from "@nestjs/config";
 import { AppModule } from "./app.module.js";
 import { configureApp, GLOBAL_PREFIX } from "./app.setup.js";
 import { escribirLog, JsonLoggerService } from "./common/json-logger.js";
+import corsConfig from "./common/cors.config.js";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { logger: new JsonLoggerService() });
-  app.enableCors({ origin: true, credentials: true });
+
+  const cors = app.get(corsConfig.KEY) as Readonly<ConfigType<typeof corsConfig>>;
+  if (cors.origenes.length > 0) {
+    app.enableCors({ origin: cors.origenes, credentials: true });
+  }
+
   configureApp(app);
 
   const documento = SwaggerModule.createDocument(

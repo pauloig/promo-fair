@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { CatalogoModule } from "./catalogo/catalogo.module.js";
+import cookiesConfig from "./common/cookies.config.js";
+import corsConfig from "./common/cors.config.js";
 import { ErrorFormateadoFilter } from "./common/http-exception.filter.js";
 import { ConfirmacionesModule } from "./confirmaciones/confirmaciones.module.js";
 import jwtConfig from "./confirmaciones/jwt.config.js";
@@ -16,7 +18,7 @@ import ventasConfig from "./ventas/ventas.config.js";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [eventoConfig, jwtConfig, ventasConfig],
+      load: [eventoConfig, jwtConfig, ventasConfig, cookiesConfig, corsConfig],
     }),
     CsrfModule,
     CatalogoModule,

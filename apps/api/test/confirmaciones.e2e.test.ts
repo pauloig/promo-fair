@@ -46,6 +46,7 @@ let originalJwtSecret: string | undefined;
 let originalDatabaseUrl: string | undefined;
 let originalVentasUsername: string | undefined;
 let originalVentasPassword: string | undefined;
+let originalCookieSecure: string | undefined;
 
 function cuerpoConfirmacion(
   email: string,
@@ -101,11 +102,13 @@ beforeAll(async () => {
   originalJwtSecret = process.env.JWT_SECRET;
   originalVentasUsername = process.env.VENTAS_USERNAME;
   originalVentasPassword = process.env.VENTAS_PASSWORD;
+  originalCookieSecure = process.env.COOKIE_SECURE;
   process.env.EVENTO_FECHA_INICIO = EVENTO_FECHA_INICIO;
   process.env.EVENTO_FECHA_FIN = EVENTO_FECHA_FIN;
   process.env.JWT_SECRET = JWT_SECRET_E2E;
   process.env.VENTAS_USERNAME = VENTAS_TEST_USERNAME;
   process.env.VENTAS_PASSWORD = VENTAS_TEST_PASSWORD;
+  process.env.COOKIE_SECURE = "true";
 
   const created = await createTestDatabase("confirmaciones");
   adminPool = created.adminPool;
@@ -168,6 +171,11 @@ afterAll(async () => {
     process.env.VENTAS_PASSWORD = originalVentasPassword;
   } else {
     delete process.env.VENTAS_PASSWORD;
+  }
+  if (originalCookieSecure !== undefined) {
+    process.env.COOKIE_SECURE = originalCookieSecure;
+  } else {
+    delete process.env.COOKIE_SECURE;
   }
 });
 

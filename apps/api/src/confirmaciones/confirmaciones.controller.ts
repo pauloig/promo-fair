@@ -20,6 +20,8 @@ import {
   type ConfirmacionResumen,
 } from "@disagro/shared";
 import { ZodValidationPipe } from "../common/zod-validation.pipe.js";
+import { opcionesCookie } from "../common/cookie-opciones.js";
+import cookiesConfig from "../common/cookies.config.js";
 import { CsrfGuard } from "../csrf/csrf.guard.js";
 import { ConfirmacionesService } from "./confirmaciones.service.js";
 import { ConfirmacionInputDto } from "./dto/confirmacion-input.dto.js";
@@ -43,6 +45,8 @@ export class ConfirmacionesController {
     private readonly confirmacionesService: ConfirmacionesService,
     @Inject(jwtConfig.KEY)
     private readonly jwt: Readonly<ConfigType<typeof jwtConfig>>,
+    @Inject(cookiesConfig.KEY)
+    private readonly cookies: Readonly<ConfigType<typeof cookiesConfig>>,
   ) {}
 
   @Post()
@@ -89,13 +93,11 @@ export class ConfirmacionesController {
   ): Promise<ConfirmacionResumen> {
     const { token, resumen } = await this.confirmacionesService.confirmar(input);
 
-    res.cookie(this.jwt.cookieName, token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      maxAge: this.jwt.expiracionDias * 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    res.cookie(
+      this.jwt.cookieName,
+      token,
+      opcionesCookie(this.cookies, true, this.jwt.expiracionDias * 24 * 60 * 60 * 1000),
+    );
 
     return resumen;
   }

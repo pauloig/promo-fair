@@ -28,6 +28,8 @@ import type { Response } from "express";
 import type { VentasFiltros, VentasLoginInput } from "@disagro/shared";
 import { VentasFiltrosSchema, VentasLoginInputSchema } from "@disagro/shared";
 import { ZodValidationPipe } from "../common/zod-validation.pipe.js";
+import { opcionesCookie } from "../common/cookie-opciones.js";
+import cookiesConfig from "../common/cookies.config.js";
 import jwtConfig from "../confirmaciones/jwt.config.js";
 import { CsrfGuard } from "../csrf/csrf.guard.js";
 import { VentasConfirmacionesRespuesta } from "./dto/ventas-respuestas.dto.js";
@@ -52,6 +54,8 @@ export class VentasController {
     private readonly jwt: Readonly<ConfigType<typeof jwtConfig>>,
     @Inject(ventasConfig.KEY)
     private readonly ventas: Readonly<ConfigType<typeof ventasConfig>>,
+    @Inject(cookiesConfig.KEY)
+    private readonly cookies: Readonly<ConfigType<typeof cookiesConfig>>,
   ) {}
 
   @Post("login")
@@ -96,13 +100,11 @@ export class VentasController {
   ): Promise<{ ok: boolean }> {
     const token = await this.ventasService.login(credenciales);
 
-    res.cookie(COOKIE_VENTAS, token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      maxAge: this.ventas.expiracionHoras * 60 * 60 * 1000,
-      path: "/",
-    });
+    res.cookie(
+      COOKIE_VENTAS,
+      token,
+      opcionesCookie(this.cookies, true, this.ventas.expiracionHoras * 60 * 60 * 1000),
+    );
 
     return { ok: true };
   }

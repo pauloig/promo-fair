@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { VentasLoginInputSchema } from "@disagro/shared/schemas";
 import type { VentasFiltros, VentasLoginInput } from "@disagro/shared/schemas";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ApiError,
   exportarConfirmacionesVentas,
@@ -35,6 +35,10 @@ function mensajeDeError(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "Ocurrió un error inesperado. Inténtelo de nuevo.";
+}
+
+function esNoAutorizado(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.status === 401;
 }
 
 export function useVentas() {
@@ -67,6 +71,12 @@ export function useVentas() {
     retry: false,
     placeholderData: keepPreviousData,
   });
+
+  useEffect(() => {
+    if (esNoAutorizado(listadoQuery.error)) {
+      void sesionQuery.refetch();
+    }
+  }, [sesionQuery, listadoQuery.error]);
 
   const catalogoQuery = useQuery({
     queryKey: ["catalogo", ""],
@@ -135,6 +145,9 @@ export function useVentas() {
       URL.revokeObjectURL(url);
     } catch (error) {
       setErrorExport(mensajeDeError(error));
+      if (esNoAutorizado(error)) {
+        void sesionQuery.refetch();
+      }
     } finally {
       setExportando(false);
     }

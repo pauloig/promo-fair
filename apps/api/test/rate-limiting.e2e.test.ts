@@ -17,6 +17,10 @@ import {
   LIMITE_CONFIRMACIONES_POR_IP,
   VENTANA_CONFIRMACIONES_MS,
 } from "../src/confirmaciones/rate-limit.constants.js";
+import {
+  LIMITE_LOGIN_VENTAS_POR_IP,
+  VENTANA_LOGIN_VENTAS_MS,
+} from "../src/ventas/ventas.constants.js";
 
 const EVENTO_FECHA_INICIO = "2026-11-21T08:00:00-06:00";
 const EVENTO_FECHA_FIN = "2026-11-22T18:00:00-06:00";
@@ -172,5 +176,52 @@ describe("POST /api/confirmaciones — rate limiting por IP", () => {
     for (let i = 0; i < 20; i++) {
       await request(app.getHttpServer()).get("/api/catalogo").expect(200);
     }
+  });
+});
+
+describe("POST /api/ventas/login — rate limiting por IP", () => {
+  it(
+    `acepta ${LIMITE_LOGIN_VENTAS_POR_IP} intentos por IP en la ventana ` +
+      `${VENTANA_LOGIN_VENTAS_MS / 60_000} min y responde 429 al exceder el límite`,
+    async () => {
+      for (let i = 0; i < LIMITE_LOGIN_VENTAS_POR_IP; i++) {
+        const respuesta = await request(app.getHttpServer())
+          .post("/api/ventas/login")
+          .send({
+            username: VENTAS_TEST_USERNAME,
+            password: VENTAS_TEST_PASSWORD,
+          })
+          .expect(200);
+
+        expect(respuesta.headers["x-ratelimit-limit"]).toBe(
+          String(LIMITE_LOGIN_VENTAS_POR_IP),
+        );
+        expect(Number(respuesta.headers["x-ratelimit-remaining"])).toBe(
+          LIMITE_LOGIN_VENTAS_POR_IP - 1 - i,
+        );
+      }
+
+      const exceso = await request(app.getHttpServer())
+        .post("/api/ventas/login")
+        .send({
+          username: VENTAS_TEST_USERNAME,
+          password: VENTAS_TEST_PASSWORD,
+        })
+        .expect(429);
+      expect(exceso.body.statusCode).toBe(429);
+      expect(Number(exceso.headers["retry-after"])).toBeGreaterThan(0);
+    },
+  );
+});
+
+describe("Helmet — cabeceras de seguridad", () => {
+  it("incluye las cabeceras de seguridad en las respuestas de la API", async () => {
+    const respuesta = await request(app.getHttpServer())
+      .get("/api/catalogo")
+      .expect(200);
+
+    expect(respuesta.headers["x-content-type-options"]).toBe("nosniff");
+    expect(respuesta.headers["x-frame-options"]).toBe("SAMEORIGIN");
+    expect(respuesta.headers["referrer-policy"]).toMatch(/no-referrer/);
   });
 });

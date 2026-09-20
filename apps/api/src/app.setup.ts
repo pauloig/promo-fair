@@ -1,9 +1,11 @@
 import { ValidationPipe } from "@nestjs/common";
 import type { INestApplication } from "@nestjs/common";
+import helmet from "helmet";
 
 export const GLOBAL_PREFIX = "api";
 
 export function configureApp(app: INestApplication): INestApplication {
+  app.use(helmet());
   app.setGlobalPrefix(GLOBAL_PREFIX);
   app.useGlobalPipes(
     new ValidationPipe({

@@ -6,6 +6,7 @@ import {
   ApiOperation,
   ApiProduces,
   ApiQuery,
+  ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import {
@@ -21,6 +22,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import type { ConfigType } from "@nestjs/config";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import type { Response } from "express";
 import type { VentasFiltros, VentasLoginInput } from "@disagro/shared";
 import { VentasFiltrosSchema, VentasLoginInputSchema } from "@disagro/shared";
@@ -31,7 +33,11 @@ import {
   VentasLoginInputDto,
   VentasLoginResultadoDto,
 } from "./dto/ventas-login-input.dto.js";
-import { COOKIE_VENTAS } from "./ventas.constants.js";
+import {
+  COOKIE_VENTAS,
+  LIMITE_LOGIN_VENTAS_POR_IP,
+  VENTANA_LOGIN_VENTAS_MS,
+} from "./ventas.constants.js";
 import { VentasLoginGuard } from "./ventas-login.guard.js";
 import { VentasService } from "./ventas.service.js";
 import ventasConfig from "./ventas.config.js";
@@ -47,12 +53,20 @@ export class VentasController {
   ) {}
 
   @Post("login")
+  @UseGuards(ThrottlerGuard)
+  @Throttle({
+    default: {
+      limit: LIMITE_LOGIN_VENTAS_POR_IP,
+      ttl: VENTANA_LOGIN_VENTAS_MS,
+    },
+  })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Inicia sesión del equipo de Ventas",
     description:
       "Valida las credenciales contra el usuario de Ventas y emite una cookie de sesión " +
-      "propia e independiente de la sesión de cliente (ADR-009).",
+      "propia e independiente de la sesión de cliente (ADR-009). El endpoint está limitado " +
+      "por IP (ADR-012).",
   })
   @ApiBody({
     type: VentasLoginInputDto,
@@ -65,6 +79,9 @@ export class VentasController {
   })
   @ApiUnauthorizedResponse({
     description: "Credenciales inválidas.",
+  })
+  @ApiTooManyRequestsResponse({
+    description: `Se excedió el límite de intentos por IP (${LIMITE_LOGIN_VENTAS_POR_IP} en ${VENTANA_LOGIN_VENTAS_MS / 60000} minutos).`,
   })
   async login(
     @Body(new ZodValidationPipe(VentasLoginInputSchema)) credenciales: VentasLoginInput,

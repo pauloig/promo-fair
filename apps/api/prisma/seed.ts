@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { escribirLog } from "../src/common/json-logger.js";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -53,15 +54,19 @@ async function main(): Promise<void> {
     create: { username, passwordHash },
   });
 
-  console.log(
-    `Catálogo sembrado: ${catalogo.length} ítems (${SERVICIOS.length} servicios, ${PRODUCTOS.length} productos).`,
-  );
-  console.log(`Usuario de Ventas listo: ${username}`);
+  escribirLog("log", "Catálogo sembrado", {
+    total: catalogo.length,
+    servicios: SERVICIOS.length,
+    productos: PRODUCTOS.length,
+  });
+  escribirLog("log", "Usuario de Ventas listo", { username });
 }
 
 main()
   .catch((error) => {
-    console.error(error);
+    escribirLog("error", "Falló el sembrado de datos", {
+      ...(error instanceof Error ? { error: error.message, stack: error.stack } : {}),
+    });
     process.exit(1);
   })
   .finally(async () => {

@@ -8,7 +8,7 @@ import jwtConfig from "./confirmaciones/jwt.config.js";
 import { CsrfModule } from "./csrf/csrf.module.js";
 import eventoConfig from "./evento/evento.config.js";
 import { EventoModule } from "./evento/evento.module.js";
-import { HealthController } from "./health.controller.js";
+import { HealthModule } from "./health/health.module.js";
 import { VentasModule } from "./ventas/ventas.module.js";
 import ventasConfig from "./ventas/ventas.config.js";
 
@@ -21,10 +21,10 @@ import ventasConfig from "./ventas/ventas.config.js";
     CsrfModule,
     CatalogoModule,
     EventoModule,
+    HealthModule,
     ConfirmacionesModule,
     VentasModule,
   ],
-  controllers: [HealthController],
   providers: [
     {
       provide: APP_FILTER,

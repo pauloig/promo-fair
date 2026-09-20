@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import type { Request, Response } from "express";
+import { escribirLog } from "./json-logger.js";
 
 export interface CuerpoError {
   statusCode: number;
@@ -22,6 +23,15 @@ export class ErrorFormateadoFilter implements ExceptionFilter {
     const peticion = contexto.getRequest<Request>();
 
     const { statusCode, message } = this.detalleDe(exception);
+
+    if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      escribirLog("error", "Fallo no controlado durante la petición", {
+        metodo: peticion.method,
+        ruta: peticion.originalUrl,
+        statusCode,
+        ...(exception instanceof Error ? { error: exception.name, stack: exception.stack } : {}),
+      });
+    }
 
     const cuerpo: CuerpoError = {
       statusCode,

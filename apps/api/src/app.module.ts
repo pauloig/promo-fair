@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { CatalogoModule } from "./catalogo/catalogo.module.js";
 import { ConfirmacionesModule } from "./confirmaciones/confirmaciones.module.js";
 import jwtConfig from "./confirmaciones/jwt.config.js";
+import { CsrfModule } from "./csrf/csrf.module.js";
 import eventoConfig from "./evento/evento.config.js";
 import { EventoModule } from "./evento/evento.module.js";
 import { HealthController } from "./health.controller.js";
@@ -15,6 +16,7 @@ import ventasConfig from "./ventas/ventas.config.js";
       isGlobal: true,
       load: [eventoConfig, jwtConfig, ventasConfig],
     }),
+    CsrfModule,
     CatalogoModule,
     EventoModule,
     ConfirmacionesModule,

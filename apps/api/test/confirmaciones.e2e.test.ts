@@ -13,12 +13,15 @@ import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
 import {
   applyMigrations,
+  CABECERA_CSRF,
   createTestDatabase,
+  obtenerCsrf,
   seedCatalogo,
   type ItemSemilla,
   VENTAS_TEST_PASSWORD,
   VENTAS_TEST_USERNAME,
 } from "./helpers.js";
+import type { CredencialCsrf } from "./helpers.js";
 
 const EVENTO_FECHA_INICIO = "2026-11-21T08:00:00-06:00";
 const EVENTO_FECHA_FIN = "2026-11-22T18:00:00-06:00";
@@ -36,6 +39,7 @@ let adminPool: Pool;
 let testDatabaseUrl: string;
 let prisma: PrismaClient;
 let catalogo: Record<string, ItemSemilla>;
+let csrf: CredencialCsrf;
 let originalFechaInicio: string | undefined;
 let originalFechaFin: string | undefined;
 let originalJwtSecret: string | undefined;
@@ -122,6 +126,7 @@ beforeAll(async () => {
   app = moduleRef.createNestApplication();
   configureApp(app);
   await app.init();
+  csrf = await obtenerCsrf(app);
 }, 180_000);
 
 afterAll(async () => {
@@ -180,6 +185,8 @@ describe("POST /api/confirmaciones — cliente nuevo", () => {
   it("crea cliente y confirmación, congela nombres/precios del catálogo, calcula descuentos y emite cookie de sesión", async () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send(cuerpoConfirmacion(email, seleccion, fechaHoraEvento))
       .expect(201);
 
@@ -253,6 +260,8 @@ describe("POST /api/confirmaciones — cliente existente", () => {
   it("una segunda petición con el mismo email actualiza en vez de duplicar y guarda el estado anterior", async () => {
     const primera = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send(cuerpoConfirmacion(email, primeraSeleccion, primeraFecha))
       .expect(201);
 
@@ -260,6 +269,8 @@ describe("POST /api/confirmaciones — cliente existente", () => {
 
     const segunda = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send(cuerpoConfirmacion(email, segundaSeleccion, segundaFecha))
       .expect(201);
 
@@ -320,6 +331,8 @@ describe("POST /api/confirmaciones — validaciones", () => {
   it("rechaza con 400 una fecha/hora fuera del rango configurado del evento", async () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send(
         cuerpoConfirmacion(
           "fuera.rango@example.com",
@@ -335,6 +348,8 @@ describe("POST /api/confirmaciones — validaciones", () => {
   it("rechaza con 400 ítems inexistentes o inactivos", async () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send(
         cuerpoConfirmacion(
           "items.invalidos@example.com",
@@ -350,6 +365,8 @@ describe("POST /api/confirmaciones — validaciones", () => {
   it("rechaza con 400 un body que no cumple ConfirmacionInputSchema", async () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send({
         cliente: {
           nombre: "Cliente",
@@ -388,6 +405,8 @@ describe("GET /api/confirmaciones/mia — sesión de cliente", () => {
   it("devuelve 200 con la confirmación propia usando la cookie emitida al confirmar", async () => {
     const emision = await request(app.getHttpServer())
       .post("/api/confirmaciones")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send(cuerpoConfirmacion(email, seleccion, fechaHoraEvento))
       .expect(201);
 

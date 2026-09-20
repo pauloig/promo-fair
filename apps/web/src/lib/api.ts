@@ -7,6 +7,7 @@ import type {
   VentasLoginInput,
 } from "@disagro/shared/schemas";
 import type { CatalogoItem, TipoItem } from "./catalogo";
+import { obtenerCabeceraCsrf } from "./csrf";
 
 type CatalogoItemDto = {
   id: string;
@@ -69,7 +70,11 @@ export async function enviarConfirmacion(
   const respuesta = await fetch(`${BASE_API}/confirmaciones`, {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(await obtenerCabeceraCsrf()),
+    },
     body: JSON.stringify(input),
   });
 
@@ -125,7 +130,11 @@ export async function iniciarSesionVentas(
   const respuesta = await fetch(`${BASE_API}/ventas/login`, {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(await obtenerCabeceraCsrf()),
+    },
     body: JSON.stringify(input),
   });
 

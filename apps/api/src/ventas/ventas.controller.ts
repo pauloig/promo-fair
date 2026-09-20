@@ -2,6 +2,7 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCookieAuth,
+  ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
@@ -28,6 +29,7 @@ import type { VentasFiltros, VentasLoginInput } from "@disagro/shared";
 import { VentasFiltrosSchema, VentasLoginInputSchema } from "@disagro/shared";
 import { ZodValidationPipe } from "../common/zod-validation.pipe.js";
 import jwtConfig from "../confirmaciones/jwt.config.js";
+import { CsrfGuard } from "../csrf/csrf.guard.js";
 import { VentasConfirmacionesRespuesta } from "./dto/ventas-respuestas.dto.js";
 import {
   VentasLoginInputDto,
@@ -53,7 +55,7 @@ export class VentasController {
   ) {}
 
   @Post("login")
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(CsrfGuard, ThrottlerGuard)
   @Throttle({
     default: {
       limit: LIMITE_LOGIN_VENTAS_POR_IP,
@@ -66,7 +68,8 @@ export class VentasController {
     description:
       "Valida las credenciales contra el usuario de Ventas y emite una cookie de sesión " +
       "propia e independiente de la sesión de cliente (ADR-009). El endpoint está limitado " +
-      "por IP (ADR-012).",
+      "por IP (ADR-012) y protegido contra CSRF con doble cookie: requiere la cabecera " +
+      "X-CSRF-Token con el valor de la cookie `disagro_csrf`.",
   })
   @ApiBody({
     type: VentasLoginInputDto,
@@ -79,6 +82,10 @@ export class VentasController {
   })
   @ApiUnauthorizedResponse({
     description: "Credenciales inválidas.",
+  })
+  @ApiForbiddenResponse({
+    description:
+      "La cabecera X-CSRF-Token no coincide con la cookie de token CSRF (protección CSRF).",
   })
   @ApiTooManyRequestsResponse({
     description: `Se excedió el límite de intentos por IP (${LIMITE_LOGIN_VENTAS_POR_IP} en ${VENTANA_LOGIN_VENTAS_MS / 60000} minutos).`,

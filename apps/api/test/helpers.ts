@@ -2,9 +2,12 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import type { INestApplication } from "@nestjs/common";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import request from "supertest";
+import { COOKIE_CSRF } from "../src/csrf/csrf.constants.js";
 
 const execFileAsync = promisify(execFile);
 const API_DIR = path.resolve(process.cwd());
@@ -12,6 +15,24 @@ const PRISMA_BIN = path.join(API_DIR, "node_modules", ".bin", "prisma");
 
 export const VENTAS_TEST_USERNAME = "ventas-e2e";
 export const VENTAS_TEST_PASSWORD = "clave-ventas-e2e";
+
+export const CABECERA_CSRF = "X-CSRF-Token";
+
+export interface CredencialCsrf {
+  cookie: string;
+  token: string;
+}
+
+export async function obtenerCsrf(
+  app: INestApplication,
+): Promise<CredencialCsrf> {
+  const respuesta = await request(app.getHttpServer())
+    .get("/api/csrf-token")
+    .expect(200);
+
+  const token = (respuesta.body as { token: string }).token;
+  return { cookie: `${COOKIE_CSRF}=${token}`, token };
+}
 
 export const CATALOGO_SEMILLA = [
   { nombre: "Servicio control de plagas", tipo: "SERVICIO", precioActualCentavos: 100000, activo: true },

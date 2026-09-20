@@ -3,6 +3,7 @@ import {
   ApiBody,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -19,6 +20,7 @@ import {
   type ConfirmacionResumen,
 } from "@disagro/shared";
 import { ZodValidationPipe } from "../common/zod-validation.pipe.js";
+import { CsrfGuard } from "../csrf/csrf.guard.js";
 import { ConfirmacionesService } from "./confirmaciones.service.js";
 import { ConfirmacionInputDto } from "./dto/confirmacion-input.dto.js";
 import {
@@ -44,7 +46,7 @@ export class ConfirmacionesController {
   ) {}
 
   @Post()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(CsrfGuard, ThrottlerGuard)
   @Throttle({
     default: {
       limit: LIMITE_CONFIRMACIONES_POR_IP,
@@ -58,7 +60,8 @@ export class ConfirmacionesController {
       "confirmación para el mismo correo, se actualiza y el estado anterior se guarda en el historial. " +
       "Los nombres y precios de los ítems se congelan al confirmar (ADR-007), los descuentos se calculan " +
       "en el servidor (ADR-001/ADR-002) y se emite una cookie de sesión JWT de cliente de 30 días (ADR-003). " +
-      "El endpoint está limitado por IP (ADR-011).",
+      "El endpoint está limitado por IP (ADR-011) y protegido contra CSRF con doble cookie (ADR-012): " +
+      "requiere la cabecera X-CSRF-Token con el valor de la cookie `disagro_csrf`.",
   })
   @ApiBody({
     type: ConfirmacionInputDto,
@@ -75,6 +78,10 @@ export class ConfirmacionesController {
   })
   @ApiTooManyRequestsResponse({
     description: `Se excedió el límite de confirmaciones por IP (${LIMITE_CONFIRMACIONES_POR_IP} en ${VENTANA_CONFIRMACIONES_MS / 60000} minutos).`,
+  })
+  @ApiForbiddenResponse({
+    description:
+      "La cabecera X-CSRF-Token no coincide con la cookie de token CSRF (protección CSRF).",
   })
   async confirmar(
     @Body(new ZodValidationPipe(ConfirmacionInputSchema)) input: ConfirmacionInput,

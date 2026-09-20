@@ -11,12 +11,15 @@ import { configureApp } from "../src/app.setup.js";
 import { COOKIE_VENTAS } from "../src/ventas/ventas.constants.js";
 import {
   applyMigrations,
+  CABECERA_CSRF,
   createTestDatabase,
+  obtenerCsrf,
   seedCatalogo,
   type ItemSemilla,
   VENTAS_TEST_PASSWORD,
   VENTAS_TEST_USERNAME,
 } from "./helpers.js";
+import type { CredencialCsrf } from "./helpers.js";
 
 const EVENTO_FECHA_INICIO = "2026-11-21T08:00:00-06:00";
 const EVENTO_FECHA_FIN = "2026-11-22T18:00:00-06:00";
@@ -43,6 +46,8 @@ let adminPool: Pool;
 let testDatabaseUrl: string;
 let prisma: PrismaClient;
 let catalogo: Record<string, ItemSemilla>;
+let csrf: CredencialCsrf;
+let sesionVentas: string;
 let originalDatabaseUrl: string | undefined;
 let originalFechaInicio: string | undefined;
 let originalFechaFin: string | undefined;
@@ -73,6 +78,8 @@ async function crearConfirmacion(
 ): Promise<request.Response> {
   return request(app.getHttpServer())
     .post("/api/confirmaciones")
+    .set("Cookie", csrf.cookie)
+    .set(CABECERA_CSRF, csrf.token)
     .send(cuerpoConfirmacion(email, nombresItems, fechaHoraEvento))
     .expect(201);
 }
@@ -111,6 +118,14 @@ beforeAll(async () => {
   app = moduleRef.createNestApplication();
   configureApp(app);
   await app.init();
+  csrf = await obtenerCsrf(app);
+  const loginVentas = await request(app.getHttpServer())
+    .post("/api/ventas/login")
+    .set("Cookie", csrf.cookie)
+    .set(CABECERA_CSRF, csrf.token)
+    .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
+    .expect(200);
+  sesionVentas = extraerCookie(loginVentas, COOKIE_VENTAS);
 }, 180_000);
 
 afterAll(async () => {
@@ -157,6 +172,8 @@ describe("POST /api/ventas/login", () => {
   it("rechaza con 401 credenciales incorrectas", async () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/ventas/login")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send({ username: EMAIL_VENTAS, password: "clave-incorrecta" })
       .expect(401);
 
@@ -167,6 +184,8 @@ describe("POST /api/ventas/login", () => {
   it("emite una cookie de sesión propia, distinta a la del cliente", async () => {
     const respuesta = await request(app.getHttpServer())
       .post("/api/ventas/login")
+      .set("Cookie", csrf.cookie)
+      .set(CABECERA_CSRF, csrf.token)
       .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
       .expect(200);
 
@@ -210,11 +229,7 @@ describe("GET /api/ventas/confirmaciones — protección de sesión", () => {
   });
 
   it("tampoco permite que la cookie de Ventas acceda a /api/confirmaciones/mia", async () => {
-    const login = await request(app.getHttpServer())
-      .post("/api/ventas/login")
-      .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
-      .expect(200);
-    const cookieVentas = extraerCookie(login, COOKIE_VENTAS);
+    const cookieVentas = sesionVentas;
 
     const respuesta = await request(app.getHttpServer())
       .get("/api/confirmaciones/mia")
@@ -227,11 +242,7 @@ describe("GET /api/ventas/confirmaciones — protección de sesión", () => {
 
 describe("GET /api/ventas/confirmaciones — datos y filtros", () => {
   it("devuelve el listado y el resumen agregado (total y top 5)", async () => {
-    const login = await request(app.getHttpServer())
-      .post("/api/ventas/login")
-      .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
-      .expect(200);
-    const cookieVentas = extraerCookie(login, COOKIE_VENTAS);
+    const cookieVentas = sesionVentas;
 
     await crearConfirmacion(EMAIL_A, SELECCION_A, "2026-11-21T09:00:00-06:00");
     await crearConfirmacion(EMAIL_B, SELECCION_B, "2026-11-21T15:00:00-06:00");
@@ -260,11 +271,7 @@ describe("GET /api/ventas/confirmaciones — datos y filtros", () => {
   });
 
   it("filtra por catalogoItemId", async () => {
-    const login = await request(app.getHttpServer())
-      .post("/api/ventas/login")
-      .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
-      .expect(200);
-    const cookieVentas = extraerCookie(login, COOKIE_VENTAS);
+    const cookieVentas = sesionVentas;
 
     const respuesta = await request(app.getHttpServer())
       .get("/api/ventas/confirmaciones")
@@ -280,11 +287,7 @@ describe("GET /api/ventas/confirmaciones — datos y filtros", () => {
   });
 
   it("filtra por rango de fecha/hora del evento", async () => {
-    const login = await request(app.getHttpServer())
-      .post("/api/ventas/login")
-      .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
-      .expect(200);
-    const cookieVentas = extraerCookie(login, COOKIE_VENTAS);
+    const cookieVentas = sesionVentas;
 
     const respuesta = await request(app.getHttpServer())
       .get("/api/ventas/confirmaciones")
@@ -303,11 +306,7 @@ describe("GET /api/ventas/confirmaciones — datos y filtros", () => {
   });
 
   it("rechaza con 400 filtros malformados o incoherentes", async () => {
-    const login = await request(app.getHttpServer())
-      .post("/api/ventas/login")
-      .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
-      .expect(200);
-    const cookieVentas = extraerCookie(login, COOKIE_VENTAS);
+    const cookieVentas = sesionVentas;
 
     await request(app.getHttpServer())
       .get("/api/ventas/confirmaciones")
@@ -328,11 +327,7 @@ describe("GET /api/ventas/confirmaciones — datos y filtros", () => {
 
 describe("GET /api/ventas/confirmaciones/export — CSV", () => {
   it("devuelve un CSV con todas las confirmaciones respetando los mismos filtros", async () => {
-    const login = await request(app.getHttpServer())
-      .post("/api/ventas/login")
-      .send({ username: EMAIL_VENTAS, password: CLAVE_VENTAS })
-      .expect(200);
-    const cookieVentas = extraerCookie(login, COOKIE_VENTAS);
+    const cookieVentas = sesionVentas;
 
     const sinFiltros = await request(app.getHttpServer())
       .get("/api/ventas/confirmaciones/export")

@@ -10,9 +10,12 @@ import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/app.setup.js";
 import { applyMigrations, createTestDatabase } from "./helpers.js";
 import {
+  CABECERA_CSRF,
+  obtenerCsrf,
   VENTAS_TEST_PASSWORD,
   VENTAS_TEST_USERNAME,
 } from "./helpers.js";
+import type { CredencialCsrf } from "./helpers.js";
 import {
   LIMITE_CONFIRMACIONES_POR_IP,
   VENTANA_CONFIRMACIONES_MS,
@@ -44,6 +47,7 @@ let originalFechaFin: string | undefined;
 let originalJwtSecret: string | undefined;
 let originalVentasUsername: string | undefined;
 let originalVentasPassword: string | undefined;
+let csrf: CredencialCsrf;
 
 async function seedCatalogo(databaseUrl: string): Promise<Record<string, ItemSemilla>> {
   const semilla = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
@@ -94,6 +98,7 @@ beforeAll(async () => {
   app = moduleRef.createNestApplication();
   configureApp(app);
   await app.init();
+  csrf = await obtenerCsrf(app);
 }, 180_000);
 
 afterAll(async () => {
@@ -144,6 +149,8 @@ describe("POST /api/confirmaciones — rate limiting por IP", () => {
       for (let i = 0; i < LIMITE_CONFIRMACIONES_POR_IP; i++) {
         const respuesta = await request(app.getHttpServer())
           .post("/api/confirmaciones")
+          .set("Cookie", csrf.cookie)
+          .set(CABECERA_CSRF, csrf.token)
           .send(cuerpoConfirmacion(`rate.limit.${i}@example.com`))
           .expect(201);
 
@@ -155,12 +162,16 @@ describe("POST /api/confirmaciones — rate limiting por IP", () => {
 
       const excesoUno = await request(app.getHttpServer())
         .post("/api/confirmaciones")
+        .set("Cookie", csrf.cookie)
+        .set(CABECERA_CSRF, csrf.token)
         .send(cuerpoConfirmacion("rate.limit.exceso.1@example.com"))
         .expect(429);
       expect(excesoUno.body.statusCode).toBe(429);
 
       const excesoDos = await request(app.getHttpServer())
         .post("/api/confirmaciones")
+        .set("Cookie", csrf.cookie)
+        .set(CABECERA_CSRF, csrf.token)
         .send(cuerpoConfirmacion("rate.limit.exceso.2@example.com"))
         .expect(429);
       expect(Number(excesoDos.headers["retry-after"])).toBeGreaterThan(0);
@@ -187,6 +198,8 @@ describe("POST /api/ventas/login — rate limiting por IP", () => {
       for (let i = 0; i < LIMITE_LOGIN_VENTAS_POR_IP; i++) {
         const respuesta = await request(app.getHttpServer())
           .post("/api/ventas/login")
+          .set("Cookie", csrf.cookie)
+          .set(CABECERA_CSRF, csrf.token)
           .send({
             username: VENTAS_TEST_USERNAME,
             password: VENTAS_TEST_PASSWORD,
@@ -203,6 +216,8 @@ describe("POST /api/ventas/login — rate limiting por IP", () => {
 
       const exceso = await request(app.getHttpServer())
         .post("/api/ventas/login")
+        .set("Cookie", csrf.cookie)
+        .set(CABECERA_CSRF, csrf.token)
         .send({
           username: VENTAS_TEST_USERNAME,
           password: VENTAS_TEST_PASSWORD,

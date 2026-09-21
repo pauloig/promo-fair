@@ -42,10 +42,19 @@ async function main(): Promise<void> {
     ...PRODUCTOS.map((item) => ({ ...item, tipo: "PRODUCTO" as const })),
   ];
 
-  await prisma.$transaction([
-    prisma.catalogoItem.deleteMany(),
-    prisma.catalogoItem.createMany({ data: catalogo }),
-  ]);
+  const totalCatalogo = await prisma.catalogoItem.count();
+  if (totalCatalogo === 0) {
+    await prisma.catalogoItem.createMany({ data: catalogo });
+    escribirLog("log", "Catálogo sembrado", {
+      total: catalogo.length,
+      servicios: SERVICIOS.length,
+      productos: PRODUCTOS.length,
+    });
+  } else {
+    escribirLog("log", "Catálogo ya poblado, se omite la siembra", {
+      existentes: totalCatalogo,
+    });
+  }
 
   const passwordHash = await bcrypt.hash(password, 10);
   await prisma.usuarioVentas.upsert({
@@ -54,11 +63,6 @@ async function main(): Promise<void> {
     create: { username, passwordHash },
   });
 
-  escribirLog("log", "Catálogo sembrado", {
-    total: catalogo.length,
-    servicios: SERVICIOS.length,
-    productos: PRODUCTOS.length,
-  });
   escribirLog("log", "Usuario de Ventas listo", { username });
 }
 

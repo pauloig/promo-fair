@@ -15,12 +15,13 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm --filter @disagro/shared build
 RUN cd apps/api && DATABASE_URL="postgresql://disagro:disagro@localhost:5432/disagro" pnpm exec prisma generate
 RUN pnpm --filter @disagro/api build
+RUN pnpm --filter @disagro/api exec tsc -p tsconfig.seed.json
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm --filter @disagro/api deploy --prod /prod --config.package-import-method=copy --config.verifyDepsBeforeRun=false
 RUN cp -r apps/api/prisma /prod/prisma \
+    && cp -r apps/api/dist-seed /prod/dist-seed \
     && cd /prod \
-    && DATABASE_URL="postgresql://disagro:disagro@localhost:5432/disagro" /app/apps/api/node_modules/.bin/prisma generate \
-    && rm -rf /prod/prisma
+    && DATABASE_URL="postgresql://disagro:disagro@localhost:5432/disagro" /app/apps/api/node_modules/.bin/prisma generate
 
 # Stage final: solo runtime autocontenido (pnpm deploy) + build compilado
 FROM node:24-alpine
@@ -30,7 +31,10 @@ ENV NODE_ENV=production
 
 COPY --from=build /prod /app
 COPY --from=build /app/apps/api/dist /app/dist
+COPY apps/api/docker-entrypoint.sh /app/docker-entrypoint.sh
+
+RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

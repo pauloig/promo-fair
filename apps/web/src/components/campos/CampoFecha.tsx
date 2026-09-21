@@ -1,5 +1,4 @@
 import { formatoFechaLegible } from "../../lib/fecha";
-import { IconoCalendario, IconoChevron } from "../Iconos";
 import { CLASE_ETIQUETA } from "./estilos";
 
 type Props = {
@@ -23,20 +22,18 @@ export function CampoFecha({ valor, onCambio, min, max, error }: Props) {
           onChange={(evento) => onCambio(evento.target.value)}
           aria-label="Fecha y hora en que asistirá"
           aria-invalid={error !== undefined}
-          className="h-11 w-full cursor-pointer rounded-lg border border-linea-input bg-white pl-3 pr-20 text-sm text-transparent caret-transparent transition-colors focus:border-verde focus:outline-none"
+          className="h-11 w-full cursor-pointer rounded-lg border border-linea-input bg-white pl-3 pr-10 text-sm text-transparent caret-transparent transition-colors focus:border-verde focus:outline-none"
         />
-        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center gap-1 text-sm">
+        <span className="pointer-events-none absolute inset-y-0 left-3 right-9 flex items-center overflow-hidden">
           {valor ? (
-            <span className="text-[#2d3436]">{formatoFechaLegible(valor)}</span>
+            <span className="truncate text-[#2d3436]">
+              {formatoFechaLegible(valor)}
+            </span>
           ) : (
             <span className="text-[#6b7280]">
               Seleccione Fecha y Hora en que asistirá
             </span>
           )}
-        </span>
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center gap-2 text-[#6b7280]">
-          <IconoCalendario />
-          <IconoChevron />
         </span>
       </div>
       {error !== undefined && (

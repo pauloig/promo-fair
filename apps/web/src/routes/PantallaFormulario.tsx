@@ -137,8 +137,8 @@ export function PantallaFormulario() {
         }
       />
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="flex min-w-0 flex-col gap-10">
             <Introduccion
               titulo="La feria, a su medida"
@@ -377,35 +377,49 @@ function ResumenPanel({
   onConfirmar,
 }: PropsResumen) {
   const seleccionNula = servicios.cantidad + productos.cantidad === 0;
+  const pasoActual =
+    pasos.find((paso) => !paso.activo) ?? pasos[pasos.length - 1];
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-carbon p-6 text-white shadow-lg">
-      <ol
-        className="flex flex-wrap items-center gap-2"
-        aria-label="Progreso del formulario"
-      >
-        {pasos.map((paso, indice) => (
-          <li key={paso.numero} className="flex items-center gap-2">
-            {indice > 0 && <span className="h-px w-5 bg-white/30 sm:w-8" />}
-            <span
-              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
-                paso.activo
-                  ? "border-hoja bg-hoja text-carbon"
-                  : "border-white/25 text-white/60"
-              }`}
-            >
-              <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-                  paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
-                }`}
-              >
-                {paso.activo ? <IconoCheck className="h-3 w-3" /> : paso.numero}
-              </span>
-              {paso.etiqueta}
-            </span>
-          </li>
-        ))}
-      </ol>
+      <div className="flex flex-col gap-2">
+        <ol
+          className="flex w-full items-center"
+          aria-label="Progreso del formulario"
+        >
+          {pasos.map(
+            (paso, indice) =>
+              paso && (
+                <li
+                  key={paso.numero}
+                  className="flex flex-1 items-center last:flex-none"
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                      paso.activo && paso.numero !== pasoActual.numero
+                        ? "bg-hoja text-carbon"
+                        : paso.numero === pasoActual.numero
+                          ? "border-2 border-hoja bg-carbon-suave text-hoja"
+                          : "bg-white/10 text-white/40"
+                    }`}
+                  >
+                    {paso.numero}
+                  </span>
+                  {indice < pasos.length - 1 && (
+                    <span
+                      className={`mx-1 h-0.5 flex-1 ${
+                        paso.activo ? "bg-hoja" : "bg-white/25"
+                      }`}
+                    />
+                  )}
+                </li>
+              ),
+          )}
+        </ol>
+        <p className="text-center text-xs font-semibold text-white/60">
+          {pasoActual.etiqueta}
+        </p>
+      </div>
 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black">Resumen</h2>

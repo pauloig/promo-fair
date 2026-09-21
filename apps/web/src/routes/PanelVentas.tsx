@@ -34,7 +34,7 @@ export function PanelVentas() {
         }
       />
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
         <Introduccion
           titulo="Confirmaciones de la feria"
           descripcion="Consulte las confirmaciones de asistencia de los clientes, filtre por fecha u ítem del catálogo y exporte los resultados."

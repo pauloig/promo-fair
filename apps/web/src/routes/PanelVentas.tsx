@@ -35,7 +35,7 @@ export function PanelVentas() {
   const v = useVentas();
 
   return (
-    <div className="min-h-screen bg-gris-pagina">
+    <div className="flex min-h-screen flex-col bg-gris-pagina">
       <Encabezado
         sobreTitulo="Panel de Ventas · Disagro"
         anchoClase={ANCHO_PANEL}
@@ -51,7 +51,7 @@ export function PanelVentas() {
       />
 
       <main
-        className={`mx-auto w-full ${ANCHO_PANEL} px-4 py-8 sm:px-6 lg:py-10`}
+        className={`mx-auto w-full ${ANCHO_PANEL} flex-1 px-4 py-8 sm:px-6 lg:py-10`}
       >
         <div className="flex flex-col gap-1 border-b border-[#d8d8d8] pb-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#9aa0a5]">

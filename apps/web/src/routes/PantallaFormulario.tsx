@@ -142,7 +142,7 @@ export function PantallaFormulario() {
       : (c.rangoError ?? "Consultando el rango de fecha del evento…");
 
   return (
-    <div className="min-h-screen bg-gris-pagina">
+    <div className="flex min-h-screen flex-col bg-gris-pagina">
       <Encabezado
         sobreTitulo="FERIA DE PROMOCIONES DISAGRO"
         nota={notaEvento}
@@ -157,7 +157,7 @@ export function PantallaFormulario() {
         }
       />
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:py-10">
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="flex min-w-0 flex-col gap-10">
             <Introduccion

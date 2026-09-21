@@ -4,17 +4,28 @@ import type {
   VentasResumen,
 } from "@disagro/shared/schemas";
 import { Encabezado } from "../components/Encabezado";
-import { Introduccion } from "../components/Introduccion";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { Pie } from "../components/Pie";
-import { CampoTexto } from "../components/campos/CampoTexto";
-import { CLASE_CAMPO, CLASE_ETIQUETA } from "../components/campos/estilos";
 import { useVentas } from "../hooks/useVentas";
 import type { FiltrosFormulario } from "../hooks/useVentas";
 import { formatearPrecioQ } from "../lib/dinero";
 import { formatoFechaLegible } from "../lib/fecha";
 
 type Ventas = ReturnType<typeof useVentas>;
+
+const ETIQUETA_INTERNA =
+  "text-[11px] font-bold uppercase tracking-wider text-[#6b7280]";
+
+const CAMPO_INTERNO =
+  "h-9 w-full rounded-md border border-[#d8d8d8] bg-white px-2.5 text-sm text-[#2d3436] tabular-nums transition-colors focus:border-carbon focus:outline-none focus:ring-1 focus:ring-carbon/20";
+
+const TARJETA_INTERNA = "rounded-lg border border-[#d8d8d8] bg-white";
+
+const BOTON_PRIMARIO =
+  "inline-flex items-center justify-center rounded-md bg-carbon px-3 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-carbon-suave focus:outline-none focus:ring-2 focus:ring-carbon/30 disabled:cursor-not-allowed disabled:opacity-40";
+
+const BOTON_SECUNDARIO =
+  "inline-flex items-center justify-center rounded-md border border-[#d8d8d8] bg-white px-3 py-2 text-xs font-bold uppercase tracking-wide text-[#4a555a] transition-colors hover:bg-gris-claro focus:outline-none focus:ring-2 focus:ring-carbon/20 disabled:cursor-not-allowed disabled:opacity-40";
 
 export function PanelVentas() {
   const v = useVentas();
@@ -29,50 +40,58 @@ export function PanelVentas() {
             onClick={() => window.scrollTo(0, 0)}
             className="shrink-0 text-xs font-bold text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-hoja"
           >
-            ← Volver a la plataforma
+            ← Volver al formulario
           </a>
         }
       />
 
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
-        <Introduccion
-          titulo="Confirmaciones de la feria"
-          descripcion="Consulte las confirmaciones de asistencia de los clientes, filtre por fecha u ítem del catálogo y exporte los resultados."
-        />
+        <div className="flex flex-col gap-1 border-b border-[#d8d8d8] pb-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#9aa0a5]">
+            Panel interno · Feria de promociones
+          </p>
+          <h1 className="text-xl font-black tracking-tight text-[#2d3436]">
+            Confirmaciones de la feria
+          </h1>
+          <p className="text-sm text-[#6b7280]">
+            Consulte las confirmaciones de asistencia, filtre por fecha u ítem
+            del catálogo y exporte los resultados.
+          </p>
+        </div>
 
-        <div className="mt-8">
-        {v.estado === "comprobando" && (
-          <EstadoCentral>
-            <p className="text-sm text-[#6b7280]">Verificando la sesión…</p>
-          </EstadoCentral>
-        )}
+        <div className="mt-6">
+          {v.estado === "comprobando" && (
+            <EstadoCentral>
+              <p className="text-sm text-[#6b7280]">Verificando la sesión…</p>
+            </EstadoCentral>
+          )}
 
-        {v.estado === "error" && (
-          <EstadoCentral>
-            <div className="flex flex-col items-center gap-3">
-              <p
-                role="alert"
-                className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-center text-sm font-medium text-red-700"
-              >
-                No se pudo verificar la sesión.{" "}
-                {v.sesionQuery.error instanceof Error
-                  ? v.sesionQuery.error.message
-                  : "Inténtelo de nuevo."}
-              </p>
-              <button
-                type="button"
-                onClick={v.reiniciarSesion}
-                className="rounded-full bg-hoja px-4 py-1.5 text-xs font-bold text-carbon transition-colors hover:bg-hoja-oscuro focus:outline-none focus:ring-2 focus:ring-hoja"
-              >
-                Reintentar
-              </button>
-            </div>
-          </EstadoCentral>
-        )}
+          {v.estado === "error" && (
+            <EstadoCentral>
+              <div className="flex flex-col items-center gap-3">
+                <p
+                  role="alert"
+                  className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-center text-sm font-medium text-red-700"
+                >
+                  No se pudo verificar la sesión.{" "}
+                  {v.sesionQuery.error instanceof Error
+                    ? v.sesionQuery.error.message
+                    : "Inténtelo de nuevo."}
+                </p>
+                <button
+                  type="button"
+                  onClick={v.reiniciarSesion}
+                  className={BOTON_PRIMARIO}
+                >
+                  Reintentar
+                </button>
+              </div>
+            </EstadoCentral>
+          )}
 
-        {v.estado === "anonimo" && <LoginVentas v={v} />}
+          {v.estado === "anonimo" && <LoginVentas v={v} />}
 
-        {v.estado === "autenticado" && <ContenidoVentas v={v} />}
+          {v.estado === "autenticado" && <ContenidoVentas v={v} />}
         </div>
       </main>
 
@@ -91,20 +110,20 @@ function EstadoCentral({ children }: { children: React.ReactNode }) {
 
 function LoginVentas({ v }: { v: Ventas }) {
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-3">
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#e1e5e8] bg-white p-6 shadow-sm">
+    <div className="mx-auto flex max-w-sm flex-col gap-4">
+      <div className={`${TARJETA_INTERNA} flex flex-col gap-4 p-5`}>
         <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-black text-[#2d3436]">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[#2d3436]">
             Acceso del equipo de Ventas
           </h2>
-          <p className="text-sm leading-snug text-[#6b7280]">
+          <p className="text-xs leading-snug text-[#6b7280]">
             Ingrese con las credenciales de la campaña para consultar y exportar
             las confirmaciones.
           </p>
         </div>
 
         <form
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-3"
           onSubmit={v.iniciarSesion}
           noValidate
         >
@@ -112,9 +131,9 @@ function LoginVentas({ v }: { v: Ventas }) {
             control={v.controlLogin}
             name="username"
             render={({ field, fieldState }) => (
-              <CampoTexto
+              <CampoInterno
                 id="ventas-usuario"
-                etiqueta="Usuario:"
+                etiqueta="Usuario"
                 placeholder="Ingrese su usuario"
                 autoCompletar="username"
                 valor={field.value}
@@ -127,9 +146,9 @@ function LoginVentas({ v }: { v: Ventas }) {
             control={v.controlLogin}
             name="password"
             render={({ field, fieldState }) => (
-              <CampoTexto
+              <CampoInterno
                 id="ventas-contrasena"
-                etiqueta="Contraseña:"
+                etiqueta="Contraseña"
                 placeholder="Ingrese su contraseña"
                 autoCompletar="current-password"
                 tipo="password"
@@ -143,7 +162,7 @@ function LoginVentas({ v }: { v: Ventas }) {
           {v.loginError !== null && (
             <p
               role="alert"
-              className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-700"
+              className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-700"
             >
               {v.loginError}
             </p>
@@ -152,13 +171,58 @@ function LoginVentas({ v }: { v: Ventas }) {
           <button
             type="submit"
             disabled={v.loginEnviando}
-            className="w-full rounded-full bg-hoja px-6 py-3 text-sm font-black uppercase tracking-widest text-carbon shadow-md transition-all hover:bg-hoja-oscuro focus:outline-none focus:ring-2 focus:ring-hoja/60 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-[#9aa0a5] disabled:shadow-none"
+            className={`${BOTON_PRIMARIO} w-full`}
           >
             {v.loginEnviando ? "Ingresando…" : "Ingresar"}
           </button>
         </form>
       </div>
     </div>
+  );
+}
+
+type PropsCampoInterno = {
+  id: string;
+  etiqueta: string;
+  placeholder?: string;
+  valor: string;
+  onCambio: (valor: string) => void;
+  tipo?: "text" | "password";
+  autoCompletar?: string;
+  error?: string;
+};
+
+function CampoInterno({
+  id,
+  etiqueta,
+  placeholder,
+  valor,
+  onCambio,
+  tipo = "text",
+  autoCompletar,
+  error,
+}: PropsCampoInterno) {
+  return (
+    <label htmlFor={id} className="flex flex-col gap-1">
+      <span className={ETIQUETA_INTERNA}>{etiqueta}</span>
+      <input
+        id={id}
+        type={tipo}
+        autoComplete={autoCompletar}
+        value={valor}
+        onChange={(evento) => onCambio(evento.target.value)}
+        placeholder={placeholder}
+        aria-invalid={error !== undefined}
+        className={`${CAMPO_INTERNO} ${
+          error
+            ? "border-red-400 focus:border-red-400 focus:ring-red-200"
+            : ""
+        }`}
+      />
+      {error !== undefined && (
+        <span className="text-[11px] font-medium text-red-600">{error}</span>
+      )}
+    </label>
   );
 }
 
@@ -171,20 +235,21 @@ function ContenidoVentas({ v }: { v: Ventas }) {
     v.listadoQuery.error instanceof Error ? v.listadoQuery.error.message : null;
 
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <div className="flex flex-col gap-6 lg:sticky lg:top-[6.5rem]">
-        <FiltrosVentas v={v} />
-        <ResumenVentas resumen={resumen} actualizando={actualizando} />
-      </div>
+    <div className="flex flex-col gap-5">
+      <ResumenVentas resumen={resumen} actualizando={actualizando} />
+
+      <FiltrosVentas v={v} />
 
       <section className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-black text-[#2d3436]">Confirmaciones</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[#4a555a]">
+            Confirmaciones
+          </h2>
           <div className="flex flex-col items-end gap-1.5">
             {v.errorExport !== null && (
               <p
                 role="alert"
-                className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700"
+                className="rounded-md border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700"
               >
                 {v.errorExport}
               </p>
@@ -193,7 +258,7 @@ function ContenidoVentas({ v }: { v: Ventas }) {
               type="button"
               onClick={() => void v.exportarCsv()}
               disabled={v.exportando || confirmaciones.length === 0}
-              className="rounded-full bg-carbon px-5 py-2 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-carbon-suave focus:outline-none focus:ring-2 focus:ring-hoja/60 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-[#9aa0a5]"
+              className={BOTON_PRIMARIO}
             >
               {v.exportando ? "Exportando…" : "Exportar CSV"}
             </button>
@@ -203,7 +268,7 @@ function ContenidoVentas({ v }: { v: Ventas }) {
         {errorFiltros !== null && (
           <p
             role="alert"
-            className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+            className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
           >
             La API rechazó los filtros: {errorFiltros}
           </p>
@@ -221,16 +286,13 @@ function ContenidoVentas({ v }: { v: Ventas }) {
 
 function FiltrosVentas({ v }: { v: Ventas }) {
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-[#e1e5e8] bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-base font-black text-[#2d3436]">Filtros</h2>
-        <p className="text-xs leading-snug text-[#6b7280]">
-          Acote el listado por fecha del evento o por un ítem del catálogo.
-        </p>
-      </div>
+    <section className={`${TARJETA_INTERNA} flex flex-col gap-3 p-4`}>
+      <h2 className="text-sm font-bold uppercase tracking-wide text-[#4a555a]">
+        Filtros
+      </h2>
 
-      <div className="flex flex-col gap-3">
-        <CampoFechaVentas
+      <div className="flex flex-wrap items-end gap-3">
+        <CampoFechaInterno
           etiqueta="Evento desde"
           valor={v.filtrosFormulario.fechaDesde}
           onCambio={(valor) =>
@@ -240,7 +302,7 @@ function FiltrosVentas({ v }: { v: Ventas }) {
             })
           }
         />
-        <CampoFechaVentas
+        <CampoFechaInterno
           etiqueta="Evento hasta"
           valor={v.filtrosFormulario.fechaHasta}
           onCambio={(valor) =>
@@ -250,8 +312,8 @@ function FiltrosVentas({ v }: { v: Ventas }) {
             })
           }
         />
-        <label className="flex flex-col gap-1.5">
-          <span className={CLASE_ETIQUETA}>Ítem seleccionado</span>
+        <label className="flex min-w-[200px] flex-1 flex-col gap-1">
+          <span className={ETIQUETA_INTERNA}>Ítem seleccionado</span>
           <select
             value={v.filtrosFormulario.catalogoItemId}
             onChange={(evento) =>
@@ -260,7 +322,7 @@ function FiltrosVentas({ v }: { v: Ventas }) {
                 catalogoItemId: evento.target.value,
               })
             }
-            className={CLASE_CAMPO}
+            className={CAMPO_INTERNO}
           >
             <option value="">Todos los ítems</option>
             {(v.catalogoQuery.data ?? []).map((item) => (
@@ -270,24 +332,24 @@ function FiltrosVentas({ v }: { v: Ventas }) {
             ))}
           </select>
         </label>
-      </div>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={v.aplicarFiltros}
-          className="flex-1 rounded-full bg-carbon px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-carbon-suave focus:outline-none focus:ring-2 focus:ring-hoja/60"
-        >
-          Aplicar filtros
-        </button>
-        <button
-          type="button"
-          onClick={v.limpiarFiltros}
-          disabled={filtrosVacios(v.filtrosFormulario)}
-          className="rounded-full border border-[#d8d8d8] bg-white px-5 py-2.5 text-xs font-bold text-[#4a555a] transition-colors hover:bg-gris-claro focus:outline-none focus:ring-2 focus:ring-hoja/60 disabled:cursor-not-allowed disabled:text-[#b6bcc1]"
-        >
-          Limpiar
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={v.aplicarFiltros}
+            className={BOTON_PRIMARIO}
+          >
+            Aplicar filtros
+          </button>
+          <button
+            type="button"
+            onClick={v.limpiarFiltros}
+            disabled={filtrosVacios(v.filtrosFormulario)}
+            className={BOTON_SECUNDARIO}
+          >
+            Limpiar
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -297,25 +359,25 @@ function filtrosVacios(f: FiltrosFormulario): boolean {
   return f.fechaDesde === "" && f.fechaHasta === "" && f.catalogoItemId === "";
 }
 
-type PropsCampoFechaVentas = {
+type PropsCampoFechaInterno = {
   etiqueta: string;
   valor: string;
   onCambio: (valor: string) => void;
 };
 
-function CampoFechaVentas({
+function CampoFechaInterno({
   etiqueta,
   valor,
   onCambio,
-}: PropsCampoFechaVentas) {
+}: PropsCampoFechaInterno) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className={CLASE_ETIQUETA}>{etiqueta}</span>
+    <label className="flex min-w-[170px] flex-1 flex-col gap-1">
+      <span className={ETIQUETA_INTERNA}>{etiqueta}</span>
       <input
         type="datetime-local"
         value={valor}
         onChange={(evento) => onCambio(evento.target.value)}
-        className={CLASE_CAMPO}
+        className={CAMPO_INTERNO}
       />
     </label>
   );
@@ -328,56 +390,43 @@ function ResumenVentas({
   resumen: VentasResumen | undefined;
   actualizando: boolean;
 }) {
-  const total = resumen?.totalConfirmaciones;
-
   return (
-    <div className="flex flex-col gap-4 rounded-2xl bg-carbon p-6 text-white shadow-lg">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black">Resumen</h2>
-        {actualizando && !resumen ? (
-          <span className="text-xs text-white/60">Consultando…</span>
-        ) : null}
+    <section className="grid gap-4 sm:grid-cols-2">
+      <div className={`${TARJETA_INTERNA} flex flex-col gap-1 p-4`}>
+        <p className={ETIQUETA_INTERNA}>Confirmaciones registradas</p>
+        <p className="text-3xl font-black leading-none tabular-nums text-[#2d3436]">
+          {resumen === undefined ? "—" : resumen.totalConfirmaciones}
+        </p>
+        <p className="text-xs text-[#9aa0a5]">
+          {actualizando ? "Actualizando…" : "Total según los filtros aplicados"}
+        </p>
       </div>
 
-      {resumen === undefined ? (
-        <p className="text-sm text-white/60">Consultando los resultados…</p>
-      ) : (
-        <>
-          <p className="text-4xl font-black leading-none text-hoja">
-            {resumen.totalConfirmaciones}
-          </p>
-          <p className="text-sm text-white/70">
-            {resumen.totalConfirmaciones === 1
-              ? "confirmación"
-              : "confirmaciones"}{" "}
-            registradas
-          </p>
-
-          {resumen.topItems.length > 0 && (
-            <div className="flex flex-col gap-2.5 border-t border-white/15 pt-4">
-              <p className="text-sm font-bold text-white/80">
-                Ítems más solicitados
-              </p>
-              <ul className="flex flex-col gap-2">
-                {resumen.topItems.map((item) => (
-                  <li
-                    key={item.catalogoItemId}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <span className="min-w-0 flex-1 truncate text-white/90">
-                      {item.nombre}
-                    </span>
-                    <span className="shrink-0 rounded-full bg-hoja/20 px-2 py-0.5 text-xs font-black text-hoja">
-                      ×{item.cantidad}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+      <div className={`${TARJETA_INTERNA} flex flex-col gap-2 p-4`}>
+        <p className={ETIQUETA_INTERNA}>Ítems más solicitados</p>
+        {resumen === undefined ? (
+          <p className="text-sm text-[#9aa0a5]">Consultando…</p>
+        ) : resumen.topItems.length === 0 ? (
+          <p className="text-sm text-[#9aa0a5]">Sin datos todavía.</p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {resumen.topItems.map((item) => (
+              <li
+                key={item.catalogoItemId}
+                className="flex items-center gap-2 text-sm"
+              >
+                <span className="min-w-0 flex-1 truncate text-[#2d3436]">
+                  {item.nombre}
+                </span>
+                <span className="shrink-0 rounded bg-gris-claro px-1.5 py-0.5 text-xs font-bold tabular-nums text-[#4a555a]">
+                  ×{item.cantidad}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -431,7 +480,9 @@ function TablaConfirmaciones({
 }) {
   if (cargando && confirmaciones.length === 0) {
     return (
-      <div className="rounded-xl border border-[#e1e5e8] bg-white px-4 py-8 text-center text-sm text-[#6b7280]">
+      <div
+        className={`${TARJETA_INTERNA} px-4 py-8 text-center text-sm text-[#6b7280]`}
+      >
         Consultando las confirmaciones…
       </div>
     );
@@ -439,7 +490,7 @@ function TablaConfirmaciones({
 
   if (confirmaciones.length === 0) {
     return (
-      <div className="rounded-xl border border-[#e1e5e8] bg-white px-4 py-10 text-center">
+      <div className={`${TARJETA_INTERNA} px-4 py-10 text-center`}>
         <p className="text-sm font-semibold text-[#2d3436]">
           No hay confirmaciones para mostrar
         </p>
@@ -451,27 +502,27 @@ function TablaConfirmaciones({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#e1e5e8] bg-white shadow-sm">
+    <div className={`${TARJETA_INTERNA} overflow-hidden`}>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
           <caption className="sr-only">
             Confirmaciones de asistencia de los clientes
           </caption>
-          <thead className="bg-gris-claro text-xs font-bold text-[#4a555a]">
+          <thead className="border-b border-[#d8d8d8] bg-gris-claro text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">
             <tr>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-3 py-2.5">
                 Fecha del evento
               </th>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-3 py-2.5">
                 Cliente
               </th>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-3 py-2.5">
                 Selección
               </th>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-3 py-2.5">
                 Descuento
               </th>
-              <th scope="col" className="px-4 py-3 text-right">
+              <th scope="col" className="px-3 py-2.5 text-right">
                 Estimado
               </th>
             </tr>
@@ -497,11 +548,11 @@ function FilaConfirmacion({ fila }: { fila: VentasConfirmacionFila }) {
     fila.descuentoServiciosPct === 0 && fila.descuentoProductosPct === 0;
 
   return (
-    <tr className="align-top">
-      <td className="whitespace-nowrap px-4 py-3 font-medium text-[#2d3436]">
+    <tr className="align-top transition-colors hover:bg-gris-claro/60">
+      <td className="whitespace-nowrap px-3 py-2.5 font-medium tabular-nums text-[#2d3436]">
         {formatoFechaLegible(fila.fechaHoraEvento)}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <span className="block font-bold text-[#2d3436]">
           {fila.cliente.nombre} {fila.cliente.apellidos}
         </span>
@@ -509,9 +560,9 @@ function FilaConfirmacion({ fila }: { fila: VentasConfirmacionFila }) {
           {fila.cliente.email}
         </span>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <details className="group">
-          <summary className="w-fit cursor-pointer text-xs font-bold text-verde focus:outline-none focus:ring-2 focus:ring-verde/50 rounded">
+          <summary className="w-fit cursor-pointer rounded text-xs font-bold text-verde focus:outline-none focus:ring-2 focus:ring-verde/50">
             Ver {etiquetaSeleccion(sub)}
           </summary>
           <ul className="mt-2 flex flex-col gap-1.5">
@@ -524,7 +575,7 @@ function FilaConfirmacion({ fila }: { fila: VentasConfirmacionFila }) {
                 <span className="min-w-0 text-xs leading-snug">
                   {item.nombreCongelado}
                 </span>
-                <span className="shrink-0 text-xs font-bold">
+                <span className="shrink-0 text-xs font-bold tabular-nums">
                   {formatearPrecioQ(item.precioCongeladoCentavos)}
                 </span>
               </li>
@@ -532,25 +583,25 @@ function FilaConfirmacion({ fila }: { fila: VentasConfirmacionFila }) {
           </ul>
         </details>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         {sinDescuento ? (
           <span className="text-xs text-[#9aa0a5]">Sin descuento</span>
         ) : (
           <div className="flex flex-wrap gap-1">
             {fila.descuentoServiciosPct > 0 && (
-              <span className="rounded-full border border-hoja/40 bg-hoja/15 px-2 py-0.5 text-[10px] font-bold text-hoja-oscuro">
+              <span className="rounded border border-hoja/40 bg-hoja/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-hoja-oscuro">
                 Servicios −{fila.descuentoServiciosPct}%
               </span>
             )}
             {fila.descuentoProductosPct > 0 && (
-              <span className="rounded-full border border-hoja/40 bg-hoja/15 px-2 py-0.5 text-[10px] font-bold text-hoja-oscuro">
+              <span className="rounded border border-hoja/40 bg-hoja/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-hoja-oscuro">
                 Productos −{fila.descuentoProductosPct}%
               </span>
             )}
           </div>
         )}
       </td>
-      <td className="whitespace-nowrap px-4 py-3 text-right font-bold text-[#2d3436]">
+      <td className="whitespace-nowrap px-3 py-2.5 text-right font-bold tabular-nums text-[#2d3436]">
         {formatearPrecioQ(estimado(fila))}
       </td>
     </tr>

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Controller } from "react-hook-form";
 import type {
   VentasConfirmacionFila,
@@ -5,6 +6,7 @@ import type {
 } from "@disagro/shared/schemas";
 import { Encabezado } from "../components/Encabezado";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
+import { IconoChevron } from "../components/Iconos";
 import { Pie } from "../components/Pie";
 import { useVentas } from "../hooks/useVentas";
 import type { FiltrosFormulario } from "../hooks/useVentas";
@@ -12,6 +14,8 @@ import { formatearPrecioQ } from "../lib/dinero";
 import { formatoFechaLegible } from "../lib/fecha";
 
 type Ventas = ReturnType<typeof useVentas>;
+
+const ANCHO_PANEL = "max-w-[100rem]";
 
 const ETIQUETA_INTERNA =
   "text-[11px] font-bold uppercase tracking-wider text-[#6b7280]";
@@ -34,6 +38,7 @@ export function PanelVentas() {
     <div className="min-h-screen bg-gris-pagina">
       <Encabezado
         sobreTitulo="Panel de Ventas · Disagro"
+        anchoClase={ANCHO_PANEL}
         enlaceDerecha={
           <a
             href="#/"
@@ -45,7 +50,9 @@ export function PanelVentas() {
         }
       />
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+      <main
+        className={`mx-auto w-full ${ANCHO_PANEL} px-4 py-8 sm:px-6 lg:py-10`}
+      >
         <div className="flex flex-col gap-1 border-b border-[#d8d8d8] pb-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#9aa0a5]">
             Panel interno · Feria de promociones
@@ -442,21 +449,6 @@ function subtotales(fila: VentasConfirmacionFila): SubTotales {
   return { servicios, productos };
 }
 
-function etiquetaSeleccion(sub: SubTotales): string {
-  const partes: string[] = [];
-  if (sub.servicios > 0) {
-    partes.push(
-      `${sub.servicios} ${sub.servicios === 1 ? "servicio" : "servicios"}`,
-    );
-  }
-  if (sub.productos > 0) {
-    partes.push(
-      `${sub.productos} ${sub.productos === 1 ? "producto" : "productos"}`,
-    );
-  }
-  return partes.join(" y ");
-}
-
 function estimado(fila: VentasConfirmacionFila): number {
   const sub = subtotales(fila);
   const valor = sub.servicios + sub.productos;
@@ -469,6 +461,35 @@ function estimado(fila: VentasConfirmacionFila): number {
   return valor - descuentoServicios - descuentoProductos;
 }
 
+function ahorro(fila: VentasConfirmacionFila): number {
+  const sub = subtotales(fila);
+  return sub.servicios + sub.productos - estimado(fila);
+}
+
+type ClaveOrden = "fecha" | "cliente" | "descuento" | "total";
+type DireccionOrden = "asc" | "desc";
+type Orden = { clave: ClaveOrden; direccion: DireccionOrden };
+
+const FILAS_POR_PAGINA = 12;
+
+function valorOrden(
+  fila: VentasConfirmacionFila,
+  clave: ClaveOrden,
+): number | string {
+  switch (clave) {
+    case "fecha":
+      return new Date(fila.fechaHoraEvento).getTime();
+    case "cliente":
+      return `${fila.cliente.nombre} ${fila.cliente.apellidos}`.toLocaleLowerCase(
+        "es",
+      );
+    case "descuento":
+      return ahorro(fila);
+    case "total":
+      return estimado(fila);
+  }
+}
+
 function TablaConfirmaciones({
   confirmaciones,
   cargando,
@@ -478,6 +499,47 @@ function TablaConfirmaciones({
   cargando: boolean;
   actualizando: boolean;
 }) {
+  const [orden, setOrden] = useState<Orden | null>(null);
+  const [pagina, setPagina] = useState(1);
+
+  const filasOrdenadas = useMemo(() => {
+    if (orden === null) return confirmaciones;
+    const copia = [...confirmaciones];
+    copia.sort((a, b) => {
+      const va = valorOrden(a, orden.clave);
+      const vb = valorOrden(b, orden.clave);
+      const comparacion =
+        typeof va === "number" && typeof vb === "number"
+          ? va - vb
+          : String(va).localeCompare(String(vb), "es");
+      return orden.direccion === "asc" ? comparacion : -comparacion;
+    });
+    return copia;
+  }, [confirmaciones, orden]);
+
+  useEffect(() => {
+    setPagina(1);
+  }, [confirmaciones, orden]);
+
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(filasOrdenadas.length / FILAS_POR_PAGINA),
+  );
+  const paginaActual = Math.min(pagina, totalPaginas);
+  const inicio = (paginaActual - 1) * FILAS_POR_PAGINA;
+  const filasPagina = filasOrdenadas.slice(inicio, inicio + FILAS_POR_PAGINA);
+
+  function alternarOrden(clave: ClaveOrden): void {
+    setOrden((anterior) =>
+      anterior === null || anterior.clave !== clave
+        ? { clave, direccion: "asc" }
+        : {
+            clave,
+            direccion: anterior.direccion === "asc" ? "desc" : "asc",
+          },
+    );
+  }
+
   if (cargando && confirmaciones.length === 0) {
     return (
       <div
@@ -504,27 +566,44 @@ function TablaConfirmaciones({
   return (
     <div className={`${TARJETA_INTERNA} overflow-hidden`}>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
+        <table className="w-full min-w-[860px] border-collapse text-left text-[13px]">
           <caption className="sr-only">
             Confirmaciones de asistencia de los clientes
           </caption>
           <thead className="border-b border-[#d8d8d8] bg-gris-claro text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">
             <tr>
-              <th scope="col" className="px-3 py-2.5">
-                Fecha del evento
-              </th>
-              <th scope="col" className="px-3 py-2.5">
-                Cliente
-              </th>
-              <th scope="col" className="px-3 py-2.5">
+              <EncabezadoOrdenable
+                clave="fecha"
+                etiqueta="Fecha del evento"
+                orden={orden}
+                onOrdenar={alternarOrden}
+                className="w-[15%]"
+              />
+              <EncabezadoOrdenable
+                clave="cliente"
+                etiqueta="Cliente"
+                orden={orden}
+                onOrdenar={alternarOrden}
+                className="w-[24%]"
+              />
+              <th scope="col" className="min-w-[200px] px-3 py-2.5">
                 Selección
               </th>
-              <th scope="col" className="px-3 py-2.5">
-                Descuento
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right">
-                Estimado
-              </th>
+              <EncabezadoOrdenable
+                clave="descuento"
+                etiqueta="Descuento"
+                orden={orden}
+                onOrdenar={alternarOrden}
+                className="w-[14%]"
+              />
+              <EncabezadoOrdenable
+                clave="total"
+                etiqueta="Estimado"
+                orden={orden}
+                onOrdenar={alternarOrden}
+                className="w-[15%]"
+                derecha
+              />
             </tr>
           </thead>
           <tbody
@@ -532,18 +611,93 @@ function TablaConfirmaciones({
               actualizando ? "opacity-60" : ""
             }`}
           >
-            {confirmaciones.map((fila) => (
+            {filasPagina.map((fila) => (
               <FilaConfirmacion key={fila.id} fila={fila} />
             ))}
           </tbody>
         </table>
       </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e1e5e8] px-3 py-2.5 text-xs text-[#6b7280]">
+        <span className="tabular-nums">
+          Mostrando {inicio + 1}–{Math.min(inicio + FILAS_POR_PAGINA, filasOrdenadas.length)} de{" "}
+          {filasOrdenadas.length}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPagina(paginaActual - 1)}
+            disabled={paginaActual === 1}
+            className={BOTON_SECUNDARIO}
+          >
+            Anterior
+          </button>
+          <span className="tabular-nums">
+            Página {paginaActual} de {totalPaginas}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPagina(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+            className={BOTON_SECUNDARIO}
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
+function EncabezadoOrdenable({
+  clave,
+  etiqueta,
+  orden,
+  onOrdenar,
+  className = "",
+  derecha = false,
+}: {
+  clave: ClaveOrden;
+  etiqueta: string;
+  orden: Orden | null;
+  onOrdenar: (clave: ClaveOrden) => void;
+  className?: string;
+  derecha?: boolean;
+}) {
+  const activa = orden?.clave === clave;
+  const direccion = activa ? orden.direccion : null;
+  const ariaSort =
+    direccion === "asc"
+      ? "ascending"
+      : direccion === "desc"
+        ? "descending"
+        : "none";
+
+  return (
+    <th
+      scope="col"
+      aria-sort={ariaSort}
+      className={`px-3 py-2.5 ${derecha ? "text-right" : ""} ${className}`}
+    >
+      <button
+        type="button"
+        onClick={() => onOrdenar(clave)}
+        className={`inline-flex items-center gap-1 uppercase tracking-wide transition-colors hover:text-[#2d3436] focus:outline-none focus-visible:ring-2 focus-visible:ring-carbon/30 ${
+          derecha ? "w-full justify-end" : ""
+        } ${activa ? "text-[#2d3436]" : ""}`}
+      >
+        {etiqueta}
+        <IconoChevron
+          className={`h-3 w-3 shrink-0 transition-transform ${
+            activa ? "opacity-100" : "opacity-30"
+          } ${direccion === "asc" ? "rotate-180" : ""}`}
+        />
+      </button>
+    </th>
+  );
+}
+
 function FilaConfirmacion({ fila }: { fila: VentasConfirmacionFila }) {
-  const sub = subtotales(fila);
   const sinDescuento =
     fila.descuentoServiciosPct === 0 && fila.descuentoProductosPct === 0;
 
@@ -560,10 +714,10 @@ function FilaConfirmacion({ fila }: { fila: VentasConfirmacionFila }) {
           {fila.cliente.email}
         </span>
       </td>
-      <td className="px-3 py-2.5">
+      <td className="min-w-[200px] px-3 py-2.5">
         <details className="group">
-          <summary className="w-fit cursor-pointer rounded text-xs font-bold text-verde focus:outline-none focus:ring-2 focus:ring-verde/50">
-            Ver {etiquetaSeleccion(sub)}
+          <summary className="w-fit cursor-pointer whitespace-nowrap rounded text-xs font-bold text-verde focus:outline-none focus:ring-2 focus:ring-verde/50">
+            Ver detalle
           </summary>
           <ul className="mt-2 flex flex-col gap-1.5">
             {fila.items.map((item) => (

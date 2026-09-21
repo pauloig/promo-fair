@@ -89,7 +89,7 @@ export function FormularioDatos({
             render={({ field, fieldState }) => (
               <CampoFecha
                 valor={isoADatetimeLocal(field.value)}
-                onCambio={(naiva) => field.onChange(datetimeLocalAIso(naiva))}
+                onCambio={(nativa) => field.onChange(datetimeLocalAIso(nativa))}
                 onBlur={field.onBlur}
                 min={rango ? isoADatetimeLocal(rango.fechaInicio) : undefined}
                 max={rango ? isoADatetimeLocal(rango.fechaFin) : undefined}

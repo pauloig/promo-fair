@@ -11,3 +11,10 @@ build/
 .idea/
 coverage/
 .turbo/
+
+# Herramientas de agentes de IA
+.opencode
+opencode.json
+.agents
+skills-lock.json
+AGENTS.md

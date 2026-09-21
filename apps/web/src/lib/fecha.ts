@@ -34,9 +34,9 @@ export function isoADatetimeLocal(iso: string): string {
   )}T${rellenar(fecha.getHours())}:${rellenar(fecha.getMinutes())}`;
 }
 
-export function datetimeLocalAIso(naiva: string): string {
-  if (!naiva) return "";
-  const fecha = new Date(naiva);
+export function datetimeLocalAIso(nativa: string): string {
+  if (!nativa) return "";
+  const fecha = new Date(nativa);
   if (Number.isNaN(fecha.getTime())) return "";
   return fecha.toISOString();
 }

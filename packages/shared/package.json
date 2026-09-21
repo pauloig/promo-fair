@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "dev": "tsc --watch --preserveWatchOutput -p tsconfig.json",
     "test": "vitest run"
   },
   "dependencies": {

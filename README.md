@@ -307,6 +307,19 @@ docker compose up --build
 
 El primer arranque ejecuta las migraciones de Prisma y siembra el catálogo de servicios y productos con datos de ejemplo.
 
+### Desarrollo con recarga en caliente
+
+Para iterar sin reconstruir contenedores (la base corre en Docker, el resto en local con watch):
+
+```bash
+docker compose up -d db          # solo la base de datos
+cp .env.example .env             # crear .envs si faltan (apps/api/.env, apps/web/.env)
+pnpm dev                         # shared (tsc -w) + api (tsc -w + node --watch) + web (vite)
+```
+
+- Cambios en `apps/api/src/**` reinician la API; cambios en `apps/web/src/**` recargan el navegador (HMR); cambios en `packages/shared/**` se compilan y propagan a ambos.
+- La API local arranca en `tsc` (no `tsx`) porque NestJS requiere `emitDecoratorMetadata`; esto lo maneja `apps/api/dev.sh`.
+
 ---
 
 ## Variables de entorno

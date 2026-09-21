@@ -9,6 +9,14 @@ import { Introduccion } from "./Introduccion";
 import { EtiquetaTipo } from "./EtiquetaTipo";
 import { IconoCheck } from "./Iconos";
 import { Pie } from "./Pie";
+import { StepperProgreso } from "./StepperProgreso";
+import type { PasoProgreso } from "./StepperProgreso";
+
+const PASOS_CONFIRMADOS: PasoProgreso[] = [
+  { numero: 1, etiqueta: "Datos", estado: "completado" },
+  { numero: 2, etiqueta: "Selección", estado: "completado" },
+  { numero: 3, etiqueta: "Confirmar", estado: "completado" },
+];
 
 const TITULO_POR_TIPO: Record<TipoItem, string> = {
   SERVICIO: "Servicios",
@@ -54,6 +62,7 @@ export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
         />
 
         <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl bg-carbon p-8 text-center text-white shadow-lg">
+          <StepperProgreso pasos={PASOS_CONFIRMADOS} />
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-hoja text-carbon">
             <IconoCheck className="h-6 w-6" />
           </span>

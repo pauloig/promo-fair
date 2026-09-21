@@ -159,11 +159,25 @@ export function useConfirmacion() {
 
   const valores = form.watch();
   const nombre = valores.cliente?.nombre ?? "";
+  const apellidos = (valores.cliente?.apellidos ?? "").trim();
+  const email = (valores.cliente?.email ?? "").trim();
+  const fechaHoraEvento = (valores.fechaHoraEvento ?? "").trim();
+
+  const fechaDentroDeRango =
+    fechaHoraEvento !== "" &&
+    (rango === null || estaDentroDelRango(fechaHoraEvento, rango));
+
+  const erroresFormulario = formState.errors;
   const datosCompletos =
     nombre.trim() !== "" &&
-    (valores.cliente?.apellidos ?? "").trim() !== "" &&
-    (valores.cliente?.email ?? "").trim() !== "" &&
-    (valores.fechaHoraEvento ?? "") !== "";
+    apellidos !== "" &&
+    email !== "" &&
+    fechaHoraEvento !== "" &&
+    fechaDentroDeRango &&
+    erroresFormulario.cliente?.nombre === undefined &&
+    erroresFormulario.cliente?.apellidos === undefined &&
+    erroresFormulario.cliente?.email === undefined &&
+    erroresFormulario.fechaHoraEvento === undefined;
 
   const puedeConfirmar = datosCompletos && seleccionados.size > 0 && !enviando;
   const pistaBloqueo =

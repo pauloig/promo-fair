@@ -7,6 +7,8 @@ import { Introduccion } from "../components/Introduccion";
 import { PantallaCargaInicial } from "../components/PantallaCargaInicial";
 import { PantallaConfirmada } from "../components/PantallaConfirmada";
 import { Pie } from "../components/Pie";
+import { StepperProgreso } from "../components/StepperProgreso";
+import type { PasoProgreso } from "../components/StepperProgreso";
 import { useConfirmacion } from "../hooks/useConfirmacion";
 import type { CatalogoItem, TipoItem } from "../lib/catalogo";
 import { formatearPrecioQ } from "../lib/dinero";
@@ -105,10 +107,27 @@ export function PantallaFormulario() {
     );
   }
 
-  const pasos = [
-    { numero: 1, etiqueta: "Datos", activo: c.datosCompletos },
-    { numero: 2, etiqueta: "Selección", activo: c.seleccionados.size > 0 },
-    { numero: 3, etiqueta: "Confirmar", activo: c.confirmada },
+  const haySeleccion = c.seleccionados.size > 0;
+  const pasos: PasoProgreso[] = [
+    {
+      numero: 1,
+      etiqueta: "Datos",
+      estado: c.datosCompletos ? "completado" : "activo",
+    },
+    {
+      numero: 2,
+      etiqueta: "Selección",
+      estado: haySeleccion
+        ? "completado"
+        : c.datosCompletos
+          ? "activo"
+          : "pendiente",
+    },
+    {
+      numero: 3,
+      etiqueta: "Confirmar",
+      estado: c.puedeConfirmar ? "activo" : "pendiente",
+    },
   ];
 
   const ahorroTotal =
@@ -355,7 +374,7 @@ type PropsResumen = {
   ahorroTotal: number;
   servicios: ResumenCategoria;
   productos: ResumenCategoria;
-  pasos: { numero: number; etiqueta: string; activo: boolean }[];
+  pasos: PasoProgreso[];
   puedeConfirmar: boolean;
   pistaBloqueo: string;
   enviando: boolean;
@@ -377,49 +396,10 @@ function ResumenPanel({
   onConfirmar,
 }: PropsResumen) {
   const seleccionNula = servicios.cantidad + productos.cantidad === 0;
-  const pasoActual =
-    pasos.find((paso) => !paso.activo) ?? pasos[pasos.length - 1];
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-carbon p-6 text-white shadow-lg">
-      <div className="flex flex-col gap-2">
-        <ol
-          className="flex w-full items-center"
-          aria-label="Progreso del formulario"
-        >
-          {pasos.map(
-            (paso, indice) =>
-              paso && (
-                <li
-                  key={paso.numero}
-                  className="flex flex-1 items-center last:flex-none"
-                >
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                      paso.activo && paso.numero !== pasoActual.numero
-                        ? "bg-hoja text-carbon"
-                        : paso.numero === pasoActual.numero
-                          ? "border-2 border-hoja bg-carbon-suave text-hoja"
-                          : "bg-white/10 text-white/40"
-                    }`}
-                  >
-                    {paso.numero}
-                  </span>
-                  {indice < pasos.length - 1 && (
-                    <span
-                      className={`mx-1 h-0.5 flex-1 ${
-                        paso.activo ? "bg-hoja" : "bg-white/25"
-                      }`}
-                    />
-                  )}
-                </li>
-              ),
-          )}
-        </ol>
-        <p className="text-center text-xs font-semibold text-white/60">
-          {pasoActual.etiqueta}
-        </p>
-      </div>
+      <StepperProgreso pasos={pasos} />
 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black">Resumen</h2>

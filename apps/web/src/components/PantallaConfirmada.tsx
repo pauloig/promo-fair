@@ -45,7 +45,7 @@ export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
 
   return (
     <div className="min-h-screen bg-gris-pagina">
-      <Encabezado sobreTitulo="Disagro" />
+      <Encabezado sobreTitulo="FERIA DE PROMOCIONES DISAGRO" />
 
       <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
         <Introduccion

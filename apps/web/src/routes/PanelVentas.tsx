@@ -172,7 +172,7 @@ function ContenidoVentas({ v }: { v: Ventas }) {
 
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <div className="flex flex-col gap-6 lg:sticky lg:top-[4.5rem]">
+      <div className="flex flex-col gap-6 lg:sticky lg:top-[6.5rem]">
         <FiltrosVentas v={v} />
         <ResumenVentas resumen={resumen} actualizando={actualizando} />
       </div>

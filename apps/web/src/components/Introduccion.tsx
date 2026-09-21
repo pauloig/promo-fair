@@ -1,12 +1,9 @@
-import type { ReactNode } from "react";
-
 type Props = {
   titulo: string;
   descripcion: string;
-  acciones?: ReactNode;
 };
 
-export function Introduccion({ titulo, descripcion, acciones }: Props) {
+export function Introduccion({ titulo, descripcion }: Props) {
   return (
     <div className="flex flex-col items-start gap-4">
       <div className="flex flex-col gap-1.5">
@@ -17,7 +14,6 @@ export function Introduccion({ titulo, descripcion, acciones }: Props) {
           {descripcion}
         </p>
       </div>
-      {acciones !== undefined && acciones}
     </div>
   );
 }

@@ -124,7 +124,7 @@ export function PantallaFormulario() {
   return (
     <div className="min-h-screen bg-gris-pagina">
       <Encabezado
-        sobreTitulo="Disagro"
+        sobreTitulo="FERIA DE PROMOCIONES DISAGRO"
         nota={notaEvento}
         enlaceDerecha={
           <a
@@ -143,42 +143,6 @@ export function PantallaFormulario() {
             <Introduccion
               titulo="La feria, a su medida"
               descripcion="Confirme su asistencia, seleccione los servicios y productos de su interés y observe cómo su descuento crece en tiempo real con cada selección."
-              acciones={
-                <ol
-                  className="flex items-center gap-2"
-                  aria-label="Progreso del formulario"
-                >
-                  {pasos.map((paso, indice) => (
-                    <li key={paso.numero} className="flex items-center gap-2">
-                      {indice > 0 && (
-                        <span className="h-px w-5 bg-[#c3c9ce] sm:w-8" />
-                      )}
-                      <span
-                        className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
-                          paso.activo
-                            ? "border-hoja bg-hoja text-carbon"
-                            : "border-[#c3c9ce] bg-white text-[#6b7280]"
-                        }`}
-                      >
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-                            paso.activo
-                              ? "bg-carbon text-hoja"
-                              : "bg-gris-claro text-[#6b7280]"
-                          }`}
-                        >
-                          {paso.activo ? (
-                            <IconoCheck className="h-3 w-3" />
-                          ) : (
-                            paso.numero
-                          )}
-                        </span>
-                        {paso.etiqueta}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              }
             />
 
             <FormularioDatos
@@ -255,13 +219,14 @@ export function PantallaFormulario() {
             </section>
           </div>
 
-          <aside className="lg:sticky lg:top-[5.8rem] lg:max-h-[calc(100vh-6.5rem)] lg:overflow-y-auto">
+          <aside className="lg:sticky lg:top-[8.4rem] lg:max-h-[calc(100vh-9.5rem)] lg:overflow-y-auto">
             <ResumenPanel
               totalAntes={c.resumen.totalAntesCentavos}
               totalDespues={c.resumen.totalDespuesCentavos}
               ahorroTotal={ahorroTotal}
               servicios={c.resumen.servicios}
               productos={c.resumen.productos}
+              pasos={pasos}
               puedeConfirmar={c.puedeConfirmar}
               pistaBloqueo={c.pistaBloqueo}
               enviando={c.enviando}
@@ -390,6 +355,7 @@ type PropsResumen = {
   ahorroTotal: number;
   servicios: ResumenCategoria;
   productos: ResumenCategoria;
+  pasos: { numero: number; etiqueta: string; activo: boolean }[];
   puedeConfirmar: boolean;
   pistaBloqueo: string;
   enviando: boolean;
@@ -403,6 +369,7 @@ function ResumenPanel({
   ahorroTotal,
   servicios,
   productos,
+  pasos,
   puedeConfirmar,
   pistaBloqueo,
   enviando,
@@ -413,6 +380,33 @@ function ResumenPanel({
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-carbon p-6 text-white shadow-lg">
+      <ol
+        className="flex flex-wrap items-center gap-2"
+        aria-label="Progreso del formulario"
+      >
+        {pasos.map((paso, indice) => (
+          <li key={paso.numero} className="flex items-center gap-2">
+            {indice > 0 && <span className="h-px w-5 bg-white/30 sm:w-8" />}
+            <span
+              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
+                paso.activo
+                  ? "border-hoja bg-hoja text-carbon"
+                  : "border-white/25 text-white/60"
+              }`}
+            >
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                  paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
+                }`}
+              >
+                {paso.activo ? <IconoCheck className="h-3 w-3" /> : paso.numero}
+              </span>
+              {paso.etiqueta}
+            </span>
+          </li>
+        ))}
+      </ol>
+
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-black">Resumen</h2>
         <span

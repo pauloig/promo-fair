@@ -23,3 +23,10 @@ graph TB
     style Api fill:#2C7A7B,color:#fff
     style Db fill:#975A16,color:#fff
 ```
+
+<details>
+<summary>Ver como imagen (si el bloque anterior no se renderiza)</summary>
+
+![02-contenedores](02-contenedores.png)
+
+</details>

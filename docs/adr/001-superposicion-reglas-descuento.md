@@ -1,5 +1,4 @@
 # ADR-001: Reglas de descuento superpuestas — gana el porcentaje mayor por categoría
-*(equivale a D1)*
 
 **Estado:** Aceptada
 
@@ -10,16 +9,14 @@ El enunciado define dos condiciones por categoría (Servicios: 2+ ítems → 3%,
 Se evalúan todas las reglas de la categoría y se aplica el porcentaje más alto que se cumpla.
 
 **Alternativas consideradas**
-- *Aplicar la primera regla que se cumpla, en el orden literal del enunciado:* descartada porque produciría el resultado contraintuitivo de que un cliente con más ítems reciba menos descuento que uno con menos, si el orden de evaluación no coincide con el orden de magnitud.
+- *Aplicar la primera regla que se cumpla, en el orden literal del enunciado:* descartada porque produciría el resultado contraintuitivo de que un cliente con más ítems reciba menos descuento que uno con menos.
 - *Sumar ambos porcentajes (3% + 5% = 8%):* descartada porque el enunciado describe umbrales progresivos de la misma condición, no incentivos independientes acumulables.
 
 **Consecuencias**
 
 *Positivas*
 - Comportamiento comercialmente coherente: nunca se penaliza al cliente por seleccionar más.
-- Regla simple de verificar con pruebas unitarias (basta comprobar el máximo).
+- Regla simple de verificar con pruebas unitarias.
 
 *Negativas / trade-offs aceptados*
-- Es una interpretación no escrita en el enunciado original; queda documentada como supuesto explícito, con el riesgo de que el evaluador esperara otra cosa. Mitigado enviando la interpretación por correo al reclutador antes de construir.
-
----
+- Es una interpretación no escrita en el enunciado original; queda documentada como supuesto explícito.

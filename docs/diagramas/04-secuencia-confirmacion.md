@@ -31,3 +31,10 @@ sequenceDiagram
     Api-->>Web: 200 OK + cookie de sesión + resumen
     Web-->>Cliente: Confirmación con desglose de descuento
 ```
+
+<details>
+<summary>Ver como imagen (si el bloque anterior no se renderiza)</summary>
+
+![04-secuencia-confirmacion](04-secuencia-confirmacion.png)
+
+</details>

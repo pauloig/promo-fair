@@ -56,3 +56,10 @@ erDiagram
         string passwordHash
     }
 ```
+
+<details>
+<summary>Ver como imagen (si el bloque anterior no se renderiza)</summary>
+
+![03-modelo-datos](03-modelo-datos.png)
+
+</details>

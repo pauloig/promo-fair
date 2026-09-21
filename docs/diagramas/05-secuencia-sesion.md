@@ -20,3 +20,10 @@ sequenceDiagram
         Web-->>Cliente: Muestra el formulario vacío
     end
 ```
+
+<details>
+<summary>Ver como imagen (si el bloque anterior no se renderiza)</summary>
+
+![05-secuencia-sesion](05-secuencia-sesion.png)
+
+</details>

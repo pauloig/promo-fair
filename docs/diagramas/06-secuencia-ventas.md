@@ -18,3 +18,10 @@ sequenceDiagram
     Api-->>Web: Listado y resumen
     Web-->>Ventas: Tabla, resumen y exportación CSV
 ```
+
+<details>
+<summary>Ver como imagen (si el bloque anterior no se renderiza)</summary>
+
+![06-secuencia-ventas](06-secuencia-ventas.png)
+
+</details>

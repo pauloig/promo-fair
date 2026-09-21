@@ -1,6 +1,6 @@
 # Plataforma de Confirmación de Asistencia — Feria de Promociones DISAGRO
 
-Plataforma web que permite a los clientes de DISAGRO confirmar su asistencia a la Feria de Promociones anual, seleccionar los servicios y/o productos de su interés, y conocer en el momento el descuento al que acceden según las reglas de la campaña. La información capturada permite al equipo de Ventas preparar un portafolio de promociones personalizado por cliente.
+Plataforma para que los clientes de DISAGRO confirmen su asistencia a la Feria de Promociones anual, seleccionen los servicios y/o productos de su interés, y vean en el momento el descuento al que acceden según las reglas de la campaña. Con esa información, el equipo de Ventas puede preparar un portafolio de promociones personalizado por cliente.
 
 ## Índice
 
@@ -233,7 +233,7 @@ sequenceDiagram
 
 ## Decisiones y supuestos
 
-El enunciado deja explícitamente a criterio del equipo varios aspectos de diseño. Cada decisión tomada está documentada como un Architecture Decision Record en [`/docs/adr`](./docs/adr), incluyendo el contexto, las alternativas evaluadas y las consecuencias aceptadas:
+El enunciado dejaba varios aspectos a mi criterio (reglas de descuento superpuestas, mecanismo de sesión, destino de despliegue, entre otros). Fui documentando cada decisión que tomé, con su justificación, como un Architecture Decision Record en [`/docs/adr`](./docs/adr):
 
 | ADR | Decisión |
 |---|---|
@@ -248,6 +248,7 @@ El enunciado deja explícitamente a criterio del equipo varios aspectos de dise�
 | [009](./docs/adr/009-distribucion-del-enlace-de-acceso.md) | El enlace de acceso a la plataforma es único y público, no personalizado por cliente |
 | [010](./docs/adr/010-rango-fecha-hora-evento.md) | Rango de fecha/hora del evento configurable por variables de entorno |
 | [011](./docs/adr/011-rate-limiting-confirmaciones.md) | Rate limiting en el endpoint público de confirmación |
+| [012](./docs/adr/012-endurecimiento-seguridad-complementario.md) | Helmet, rate limiting en login de Ventas y protección CSRF |
 
 ---
 
@@ -292,33 +293,50 @@ El enunciado deja explícitamente a criterio del equipo varios aspectos de dise�
 
 ## Ejecución local
 
-Requisitos: Docker y Docker Compose.
+Requisitos: Docker y Docker Compose (y Node.js/pnpm si vas a usar el flujo de recarga en caliente).
+
+Hay tres formas de correr el proyecto, según lo que necesites:
+
+### Desarrollo con recarga en caliente (recomendado para trabajar en el código)
+
+Solo la base de datos corre en Docker; `shared`, `api` y `web` corren en local con watch:
 
 ```bash
-git clone <url-del-repositorio>
-cd <nombre-del-repositorio>
-cp .env.example .env
-docker compose up --build
+docker compose up -d db
+cp .env.example apps/api/.env
+cp .env.example apps/web/.env
+pnpm install
+pnpm dev
 ```
+
+`shared` compila con `tsc -w`, `api` corre vía `dev.sh` (`tsc -w` + `node --watch`, no `tsx`, porque NestJS necesita `emitDecoratorMetadata` y `esbuild` no lo emite) y `web` corre con Vite (HMR). Un cambio en `apps/api/src/**` reinicia la API; un cambio en `apps/web/src/**` recarga el navegador; un cambio en `packages/shared/**` se recompila y llega a ambos.
 
 - Frontend: `http://localhost:5173`
 - API: `http://localhost:3000/api`
 - Documentación de la API (OpenAPI/Swagger): `http://localhost:3000/api/docs`
 
-El primer arranque ejecuta las migraciones de Prisma y siembra el catálogo de servicios y productos con datos de ejemplo.
-
-### Desarrollo con recarga en caliente
-
-Para iterar sin reconstruir contenedores (la base corre en Docker, el resto en local con watch):
+### Stack completo en contenedores, sin TLS (para probar el build de punta a punta)
 
 ```bash
-docker compose up -d db          # solo la base de datos
-cp .env.example .env             # crear .envs si faltan (apps/api/.env, apps/web/.env)
-pnpm dev                         # shared (tsc -w) + api (tsc -w + node --watch) + web (vite)
+docker compose up --build
 ```
 
-- Cambios en `apps/api/src/**` reinician la API; cambios en `apps/web/src/**` recargan el navegador (HMR); cambios en `packages/shared/**` se compilan y propagan a ambos.
-- La API local arranca en `tsc` (no `tsx`) porque NestJS requiere `emitDecoratorMetadata`; esto lo maneja `apps/api/dev.sh`.
+Levanta los cuatro contenedores (`proxy`, `web`, `api`, `db`) con las mismas imágenes multi-stage de producción. **No tiene hot reload** — cualquier cambio de código requiere reconstruir. Sirve para verificar que el proyecto arranca igual que en un servidor real, sin necesidad de TLS.
+
+- Acceso: `http://localhost` (vía el proxy Nginx, puerto 80)
+
+### Réplica exacta de producción (con TLS)
+
+```bash
+git clone <url-del-repositorio>
+cd <nombre-del-repositorio>
+cp .env.example .env
+docker compose -f docker-compose.prod.yml up --build -d
+```
+
+Es el mismo `docker-compose.prod.yml` que corre en el Droplet.
+
+El primer arranque de cualquiera de los tres flujos ejecuta las migraciones de Prisma y siembra el catálogo con datos de ejemplo.
 
 ---
 
@@ -348,10 +366,18 @@ Incluye pruebas unitarias del motor de descuentos con los casos límite de las r
 
 ## Despliegue
 
-La plataforma corre sobre un Droplet de DigitalOcean mediante `docker-compose.prod.yml`, con cuatro contenedores (`proxy`, `web`, `api`, `db`) en una red interna de Docker. Únicamente el contenedor `proxy` expone puertos al exterior (80 y 443); el resto de servicios solo son alcanzables dentro de la red interna. Se usa el subdominio `disagro.endtoendsolutions.dev` (sobre el dominio propio `endtoendsolutions.dev`), con certificado TLS real emitido vía Let's Encrypt para ese subdominio.
+La plataforma corre en un Droplet de DigitalOcean con `docker-compose.prod.yml`: cuatro contenedores (`proxy`, `web`, `api`, `db`) en una red interna de Docker. Solo `proxy` expone puertos al exterior (80 y 443); el resto solo es alcanzable dentro de la red interna. Usa el subdominio `disagro.endtoendsolutions.dev` (sobre el dominio propio `endtoendsolutions.dev`), con certificado TLS real vía Let's Encrypt.
 
 ---
 
 ## Plataforma en línea
 
 `https://disagro.endtoendsolutions.dev`
+
+## Acceso al Panel de Ventas
+
+- URL: `https://disagro.endtoendsolutions.dev/ventas`
+- Usuario: `ventas`
+- Contraseña: `ds-ventas`
+
+Son credenciales de un entorno de prueba, con datos sembrados — no corresponden a ningún dato real de producción.

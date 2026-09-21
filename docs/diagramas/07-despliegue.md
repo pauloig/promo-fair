@@ -25,3 +25,10 @@ graph TB
     style ApiC fill:#2C7A7B,color:#fff
     style DbC fill:#975A16,color:#fff
 ```
+
+<details>
+<summary>Ver como imagen (si el bloque anterior no se renderiza)</summary>
+
+![07-despliegue](07-despliegue.png)
+
+</details>

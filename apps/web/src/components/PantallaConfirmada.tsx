@@ -1,10 +1,11 @@
-import type {
+import {
   ConfirmacionItemResumen,
   ConfirmacionResumen,
   TipoItem,
 } from "@disagro/shared/schemas";
 import { formatearPrecioQ } from "../lib/dinero";
 import { Encabezado } from "./Encabezado";
+import { Introduccion } from "./Introduccion";
 import { EtiquetaTipo } from "./EtiquetaTipo";
 import { IconoCheck } from "./Iconos";
 import { Pie } from "./Pie";
@@ -44,14 +45,15 @@ export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
 
   return (
     <div className="min-h-screen bg-gris-pagina">
-      <Encabezado
-        sobreTitulo="Disagro"
-        titulo="La feria, a su medida"
-        descripcion="Su asistencia quedó registrada junto con su selección de servicios y productos."
-      />
+      <Encabezado sobreTitulo="Disagro" />
 
       <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
-        <div className="flex flex-col items-center gap-3 rounded-2xl bg-carbon p-8 text-center text-white shadow-lg">
+        <Introduccion
+          titulo="La feria, a su medida"
+          descripcion="Su asistencia quedó registrada junto con su selección de servicios y productos."
+        />
+
+        <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl bg-carbon p-8 text-center text-white shadow-lg">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-hoja text-carbon">
             <IconoCheck className="h-6 w-6" />
           </span>

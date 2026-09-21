@@ -4,6 +4,7 @@ import type {
   VentasResumen,
 } from "@disagro/shared/schemas";
 import { Encabezado } from "../components/Encabezado";
+import { Introduccion } from "../components/Introduccion";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { Pie } from "../components/Pie";
 import { CampoTexto } from "../components/campos/CampoTexto";
@@ -22,8 +23,6 @@ export function PanelVentas() {
     <div className="min-h-screen bg-gris-pagina">
       <Encabezado
         sobreTitulo="Panel de Ventas · Disagro"
-        titulo="Confirmaciones de la feria"
-        descripcion="Consulte las confirmaciones de asistencia de los clientes, filtre por fecha u ítem del catálogo y exporte los resultados."
         enlaceDerecha={
           <a
             href="#/"
@@ -36,6 +35,12 @@ export function PanelVentas() {
       />
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+        <Introduccion
+          titulo="Confirmaciones de la feria"
+          descripcion="Consulte las confirmaciones de asistencia de los clientes, filtre por fecha u ítem del catálogo y exporte los resultados."
+        />
+
+        <div className="mt-8">
         {v.estado === "comprobando" && (
           <EstadoCentral>
             <p className="text-sm text-[#6b7280]">Verificando la sesión…</p>
@@ -68,6 +73,7 @@ export function PanelVentas() {
         {v.estado === "anonimo" && <LoginVentas v={v} />}
 
         {v.estado === "autenticado" && <ContenidoVentas v={v} />}
+        </div>
       </main>
 
       <Pie />
@@ -166,7 +172,7 @@ function ContenidoVentas({ v }: { v: Ventas }) {
 
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <div className="flex flex-col gap-6 lg:sticky lg:top-36">
+      <div className="flex flex-col gap-6 lg:sticky lg:top-[4.5rem]">
         <FiltrosVentas v={v} />
         <ResumenVentas resumen={resumen} actualizando={actualizando} />
       </div>

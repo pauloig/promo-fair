@@ -3,6 +3,7 @@ import { EncabezadoSeccion } from "../components/EncabezadoSeccion";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { FormularioDatos } from "../components/FormularioDatos";
 import { IconoCheck, IconoLupa } from "../components/Iconos";
+import { Introduccion } from "../components/Introduccion";
 import { PantallaCargaInicial } from "../components/PantallaCargaInicial";
 import { PantallaConfirmada } from "../components/PantallaConfirmada";
 import { Pie } from "../components/Pie";
@@ -124,8 +125,6 @@ export function PantallaFormulario() {
     <div className="min-h-screen bg-gris-pagina">
       <Encabezado
         sobreTitulo="Disagro"
-        titulo="La feria, a su medida"
-        descripcion="Confirme su asistencia, seleccione los servicios y productos de su interés y observe cómo su descuento crece en tiempo real con cada selección."
         nota={notaEvento}
         enlaceDerecha={
           <a
@@ -136,45 +135,52 @@ export function PantallaFormulario() {
             Panel de Ventas →
           </a>
         }
-        acciones={
-          <ol
-            className="flex items-center gap-2"
-            aria-label="Progreso del formulario"
-          >
-            {pasos.map((paso, indice) => (
-              <li key={paso.numero} className="flex items-center gap-2">
-                {indice > 0 && (
-                  <span className="h-px w-5 bg-white/30 sm:w-8" />
-                )}
-                <span
-                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
-                    paso.activo
-                      ? "border-hoja bg-hoja text-carbon"
-                      : "border-white/25 text-white/60"
-                  }`}
-                >
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-                      paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
-                    }`}
-                  >
-                    {paso.activo ? (
-                      <IconoCheck className="h-3 w-3" />
-                    ) : (
-                      paso.numero
-                    )}
-                  </span>
-                  {paso.etiqueta}
-                </span>
-              </li>
-            ))}
-          </ol>
-        }
       />
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-10">
+            <Introduccion
+              titulo="La feria, a su medida"
+              descripcion="Confirme su asistencia, seleccione los servicios y productos de su interés y observe cómo su descuento crece en tiempo real con cada selección."
+              acciones={
+                <ol
+                  className="flex items-center gap-2"
+                  aria-label="Progreso del formulario"
+                >
+                  {pasos.map((paso, indice) => (
+                    <li key={paso.numero} className="flex items-center gap-2">
+                      {indice > 0 && (
+                        <span className="h-px w-5 bg-[#c3c9ce] sm:w-8" />
+                      )}
+                      <span
+                        className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
+                          paso.activo
+                            ? "border-hoja bg-hoja text-carbon"
+                            : "border-[#c3c9ce] bg-white text-[#6b7280]"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                            paso.activo
+                              ? "bg-carbon text-hoja"
+                              : "bg-gris-claro text-[#6b7280]"
+                          }`}
+                        >
+                          {paso.activo ? (
+                            <IconoCheck className="h-3 w-3" />
+                          ) : (
+                            paso.numero
+                          )}
+                        </span>
+                        {paso.etiqueta}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              }
+            />
+
             <FormularioDatos
               control={c.control}
               errores={c.errores}
@@ -249,7 +255,7 @@ export function PantallaFormulario() {
             </section>
           </div>
 
-          <aside className="lg:sticky lg:top-40 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
+          <aside className="lg:sticky lg:top-[5.8rem] lg:max-h-[calc(100vh-6.5rem)] lg:overflow-y-auto">
             <ResumenPanel
               totalAntes={c.resumen.totalAntesCentavos}
               totalDespues={c.resumen.totalDespuesCentavos}

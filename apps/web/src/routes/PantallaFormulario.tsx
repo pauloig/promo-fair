@@ -9,6 +9,7 @@ import { Pie } from "../components/Pie";
 import { useConfirmacion } from "../hooks/useConfirmacion";
 import type { CatalogoItem, TipoItem } from "../lib/catalogo";
 import { formatearPrecioQ } from "../lib/dinero";
+import { formatoFechaLegible } from "../lib/fecha";
 import { UMBRAL_SERVICIOS_CENTAVOS } from "../lib/descuentos";
 import type { ResumenCategoria } from "../lib/descuentos";
 
@@ -112,54 +113,62 @@ export function PantallaFormulario() {
   const ahorroTotal =
     c.resumen.totalAntesCentavos - c.resumen.totalDespuesCentavos;
 
+  const notaEvento =
+    c.rango !== null
+      ? `El evento se realiza entre el ${formatoFechaLegible(
+          c.rango.fechaInicio,
+        )} y el ${formatoFechaLegible(c.rango.fechaFin)}`
+      : (c.rangoError ?? "Consultando el rango de fecha del evento…");
+
   return (
     <div className="min-h-screen bg-gris-pagina">
       <Encabezado
         sobreTitulo="Disagro"
         titulo="La feria, a su medida"
         descripcion="Confirme su asistencia, seleccione los servicios y productos de su interés y observe cómo su descuento crece en tiempo real con cada selección."
+        nota={notaEvento}
+        enlaceDerecha={
+          <a
+            href="#/ventas"
+            onClick={() => window.scrollTo(0, 0)}
+            className="shrink-0 text-xs font-bold text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-hoja"
+          >
+            Panel de Ventas →
+          </a>
+        }
         acciones={
-          <div className="flex flex-col items-start gap-3 lg:items-end">
-            <ol
-              className="flex items-center gap-2"
-              aria-label="Progreso del formulario"
-            >
-              {pasos.map((paso, indice) => (
-                <li key={paso.numero} className="flex items-center gap-2">
-                  {indice > 0 && (
-                    <span className="h-px w-5 bg-white/30 sm:w-8" />
-                  )}
+          <ol
+            className="flex items-center gap-2"
+            aria-label="Progreso del formulario"
+          >
+            {pasos.map((paso, indice) => (
+              <li key={paso.numero} className="flex items-center gap-2">
+                {indice > 0 && (
+                  <span className="h-px w-5 bg-white/30 sm:w-8" />
+                )}
+                <span
+                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
+                    paso.activo
+                      ? "border-hoja bg-hoja text-carbon"
+                      : "border-white/25 text-white/60"
+                  }`}
+                >
                   <span
-                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
-                      paso.activo
-                        ? "border-hoja bg-hoja text-carbon"
-                        : "border-white/25 text-white/60"
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                      paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
                     }`}
                   >
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-                        paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
-                      }`}
-                    >
-                      {paso.activo ? (
-                        <IconoCheck className="h-3 w-3" />
-                      ) : (
-                        paso.numero
-                      )}
-                    </span>
-                    {paso.etiqueta}
+                    {paso.activo ? (
+                      <IconoCheck className="h-3 w-3" />
+                    ) : (
+                      paso.numero
+                    )}
                   </span>
-                </li>
-              ))}
-            </ol>
-            <a
-              href="#/ventas"
-              onClick={() => window.scrollTo(0, 0)}
-              className="text-xs font-bold text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-hoja"
-            >
-              Panel de Ventas →
-            </a>
-          </div>
+                  {paso.etiqueta}
+                </span>
+              </li>
+            ))}
+          </ol>
         }
       />
 
@@ -170,7 +179,6 @@ export function PantallaFormulario() {
               control={c.control}
               errores={c.errores}
               rango={c.rango}
-              rangoError={c.rangoError}
               disposicion="cuadricula"
             />
 
@@ -241,7 +249,7 @@ export function PantallaFormulario() {
             </section>
           </div>
 
-          <aside className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+          <aside className="lg:sticky lg:top-40 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
             <ResumenPanel
               totalAntes={c.resumen.totalAntesCentavos}
               totalDespues={c.resumen.totalDespuesCentavos}

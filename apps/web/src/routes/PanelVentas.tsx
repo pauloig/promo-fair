@@ -24,7 +24,7 @@ export function PanelVentas() {
         sobreTitulo="Panel de Ventas · Disagro"
         titulo="Confirmaciones de la feria"
         descripcion="Consulte las confirmaciones de asistencia de los clientes, filtre por fecha u ítem del catálogo y exporte los resultados."
-        acciones={
+        enlaceDerecha={
           <a
             href="#/"
             onClick={() => window.scrollTo(0, 0)}
@@ -166,7 +166,7 @@ function ContenidoVentas({ v }: { v: Ventas }) {
 
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <div className="flex flex-col gap-6 lg:sticky lg:top-6">
+      <div className="flex flex-col gap-6 lg:sticky lg:top-36">
         <FiltrosVentas v={v} />
         <ResumenVentas resumen={resumen} actualizando={actualizando} />
       </div>

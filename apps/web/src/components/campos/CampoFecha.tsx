@@ -8,10 +8,9 @@ type Props = {
   min?: string;
   max?: string;
   error?: string;
-  pista?: string;
 };
 
-export function CampoFecha({ valor, onCambio, min, max, error, pista }: Props) {
+export function CampoFecha({ valor, onCambio, min, max, error }: Props) {
   return (
     <div className="flex flex-col gap-1.5">
       <span className={CLASE_ETIQUETA}>Fecha y Hora:</span>
@@ -40,9 +39,6 @@ export function CampoFecha({ valor, onCambio, min, max, error, pista }: Props) {
           <IconoChevron />
         </span>
       </div>
-      {pista !== undefined && (
-        <p className="text-[11px] leading-snug text-[#6b7280]">{pista}</p>
-      )}
       {error !== undefined && (
         <p className="text-xs font-medium text-red-600">{error}</p>
       )}

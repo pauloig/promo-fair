@@ -3,7 +3,6 @@ import { Controller } from "react-hook-form";
 import type { Control, FieldErrors } from "react-hook-form";
 import {
   datetimeLocalAIso,
-  formatoFechaLegible,
   isoADatetimeLocal,
 } from "../lib/fecha";
 import { EncabezadoSeccion } from "./EncabezadoSeccion";
@@ -14,7 +13,6 @@ type Props = {
   control: Control<ConfirmacionInput>;
   errores: FieldErrors<ConfirmacionInput>;
   rango: { fechaInicio: string; fechaFin: string } | null;
-  rangoError?: string | null;
   disposicion?: "apilado" | "cuadricula";
 };
 
@@ -22,7 +20,6 @@ export function FormularioDatos({
   control,
   errores,
   rango,
-  rangoError = null,
   disposicion = "apilado",
 }: Props) {
   const cuadricula = disposicion === "cuadricula";
@@ -95,14 +92,6 @@ export function FormularioDatos({
                 min={rango ? isoADatetimeLocal(rango.fechaInicio) : undefined}
                 max={rango ? isoADatetimeLocal(rango.fechaFin) : undefined}
                 error={errores.fechaHoraEvento?.message}
-                pista={
-                  rango !== null
-                    ? `El evento se realiza entre el ${formatoFechaLegible(
-                        rango.fechaInicio,
-                      )} y el ${formatoFechaLegible(rango.fechaFin)}`
-                    : (rangoError ??
-                      "Consultando el rango de fecha del evento…")
-                }
               />
             )}
           />

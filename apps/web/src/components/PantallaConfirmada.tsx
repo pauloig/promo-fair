@@ -7,7 +7,6 @@ import { formatearPrecioQ } from "../lib/dinero";
 import { Encabezado } from "./Encabezado";
 import { Introduccion } from "./Introduccion";
 import { EtiquetaTipo } from "./EtiquetaTipo";
-import { IconoCheck } from "./Iconos";
 import { Pie } from "./Pie";
 import { StepperProgreso } from "./StepperProgreso";
 import type { PasoProgreso } from "./StepperProgreso";
@@ -62,10 +61,7 @@ export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
         />
 
         <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl bg-carbon p-8 text-center text-white shadow-lg">
-          <StepperProgreso pasos={PASOS_CONFIRMADOS} />
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-hoja text-carbon">
-            <IconoCheck className="h-6 w-6" />
-          </span>
+          <StepperProgreso pasos={PASOS_CONFIRMADOS} mostrarTodasLasEtiquetas />
           <h2 className="text-2xl font-black">¡Asistencia confirmada!</h2>
           <p className="text-sm leading-relaxed text-white/70">
             Gracias{saludo}. El equipo de Ventas preparará su portafolio de

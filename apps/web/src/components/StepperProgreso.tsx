@@ -10,56 +10,71 @@ export type PasoProgreso = {
 
 type Props = {
   pasos: PasoProgreso[];
+  mostrarTodasLasEtiquetas?: boolean;
 };
 
-export function StepperProgreso({ pasos }: Props) {
-  const pasoActivo = pasos.find((paso) => paso.estado === "activo") ?? null;
+function claseCirculo(estado: EstadoPaso): string {
+  if (estado === "completado") return "bg-hoja text-carbon";
+  if (estado === "activo") return "border-2 border-hoja bg-carbon-suave text-hoja";
+  return "border border-white/25 bg-transparent text-white/50";
+}
 
+function claseLinea(estado: EstadoPaso): string {
+  if (estado === "completado") return "bg-hoja";
+  if (estado === "activo") return "bg-hoja/50";
+  return "bg-white/25";
+}
+
+export function StepperProgreso({
+  pasos,
+  mostrarTodasLasEtiquetas = false,
+}: Props) {
   return (
-    <div className="flex w-full flex-col gap-2">
-      <ol
-        className="flex w-full items-center"
-        aria-label="Progreso del formulario"
-      >
-        {pasos.map((paso, indice) => (
+    <ol className="flex w-full items-start" aria-label="Progreso del formulario">
+      {pasos.map((paso, indice) => {
+        const esPrimero = indice === 0;
+        const esUltimo = indice === pasos.length - 1;
+        const mostrarEtiqueta =
+          mostrarTodasLasEtiquetas || paso.estado === "activo";
+
+        return (
           <li
             key={paso.numero}
-            className="flex flex-1 items-center last:flex-none"
+            className="flex flex-1 flex-col items-center gap-1.5"
           >
-            <span
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                paso.estado === "completado"
-                  ? "bg-hoja text-carbon"
-                  : paso.estado === "activo"
-                    ? "border-2 border-hoja bg-carbon-suave text-hoja"
-                    : "border border-white/25 bg-transparent text-white/50"
-              }`}
-            >
-              {paso.estado === "completado" ? (
-                <IconoCheck className="h-3.5 w-3.5" />
+            <div className="flex w-full items-center">
+              {esPrimero ? (
+                <span className="flex-1" aria-hidden="true" />
               ) : (
-                paso.numero
+                <span
+                  className={`h-0.5 flex-1 ${claseLinea(pasos[indice - 1].estado)}`}
+                />
               )}
-            </span>
-            {indice < pasos.length - 1 && (
               <span
-                className={`mx-1 h-0.5 flex-1 ${
-                  paso.estado === "completado"
-                    ? "bg-hoja"
-                    : paso.estado === "activo"
-                      ? "bg-hoja/50"
-                      : "bg-white/25"
-                }`}
-              />
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${claseCirculo(
+                  paso.estado,
+                )}`}
+              >
+                {paso.estado === "completado" ? (
+                  <IconoCheck className="h-3.5 w-3.5" />
+                ) : (
+                  paso.numero
+                )}
+              </span>
+              {esUltimo ? (
+                <span className="flex-1" aria-hidden="true" />
+              ) : (
+                <span className={`h-0.5 flex-1 ${claseLinea(paso.estado)}`} />
+              )}
+            </div>
+            {mostrarEtiqueta && (
+              <span className="text-center text-xs font-semibold text-white/60">
+                {paso.etiqueta}
+              </span>
             )}
           </li>
-        ))}
-      </ol>
-      {pasoActivo !== null && (
-        <p className="text-center text-xs font-semibold text-white/60">
-          {pasoActivo.etiqueta}
-        </p>
-      )}
-    </div>
+        );
+      })}
+    </ol>
   );
 }

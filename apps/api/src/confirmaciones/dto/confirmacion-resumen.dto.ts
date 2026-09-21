@@ -41,6 +41,7 @@ export class ConfirmacionItemPersistido {
 export interface ConfirmacionConItems {
   id: string;
   clienteId: string;
+  fechaHoraEvento: Date;
   descuentoServiciosPct: number;
   descuentoProductosPct: number;
   items: ConfirmacionItemPersistido[];
@@ -52,6 +53,13 @@ export class ConfirmacionResumenDto {
     format: "uuid",
   })
   readonly id!: string;
+
+  @ApiProperty({
+    description:
+      "Fecha y hora del evento seleccionada y confirmada por el cliente (ISO 8601).",
+    format: "date-time",
+  })
+  readonly fechaHoraEvento!: string;
 
   @ApiProperty({
     description: "Ítems seleccionados con su nombre y precio congelados.",
@@ -82,6 +90,7 @@ export function toConfirmacionResumen(
 ): ConfirmacionResumenDto {
   return {
     id: confirmacion.id,
+    fechaHoraEvento: confirmacion.fechaHoraEvento.toISOString(),
     items: confirmacion.items.map((item) => ({
       id: item.id,
       catalogoItemId: item.catalogoItemId,

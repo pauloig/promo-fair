@@ -4,6 +4,8 @@ import {
   TipoItem,
 } from "@disagro/shared/schemas";
 import { formatearPrecioQ } from "../lib/dinero";
+import { formatoFechaCorta, formatoFechaLegible } from "../lib/fecha";
+import type { RangoFecha } from "../lib/api";
 import { Encabezado } from "./Encabezado";
 import { Introduccion } from "./Introduccion";
 import { EtiquetaTipo } from "./EtiquetaTipo";
@@ -25,10 +27,11 @@ const TITULO_POR_TIPO: Record<TipoItem, string> = {
 type Props = {
   resumen: ConfirmacionResumen;
   nombre: string;
+  rango: RangoFecha | null;
   onEditar?: () => void;
 };
 
-export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
+export function PantallaConfirmada({ resumen, nombre, rango, onEditar }: Props) {
   const itemsServicios = resumen.items.filter(
     (item) => item.tipo === "SERVICIO",
   );
@@ -74,6 +77,19 @@ export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
           <h3 className="text-base font-black text-[#2d3436]">
             Detalle de su confirmación
           </h3>
+
+          <div className="flex flex-col gap-1 rounded-lg bg-gris-claro px-4 py-3 text-sm">
+            <p className="text-[#2d3436]">
+              <span className="font-bold">Fecha y hora de su visita:</span>{" "}
+              {formatoFechaLegible(resumen.fechaHoraEvento)}
+            </p>
+            {rango !== null && (
+              <p className="text-[#4a555a]">
+                La feria se realiza del {formatoFechaCorta(rango.fechaInicio)} al{" "}
+                {formatoFechaCorta(rango.fechaFin)}
+              </p>
+            )}
+          </div>
 
           <GrupoItems tipo="SERVICIO" items={itemsServicios} />
           <GrupoItems tipo="PRODUCTO" items={itemsProductos} />

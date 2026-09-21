@@ -32,6 +32,7 @@ export const ConfirmacionItemResumenSchema = z.object({
 
 export const ConfirmacionResumenSchema = z.object({
   id: z.uuid(),
+  fechaHoraEvento: z.iso.datetime({ offset: true }),
   items: z.array(ConfirmacionItemResumenSchema),
   descuentoServiciosPct: z.number().int().min(0),
   descuentoProductosPct: z.number().int().min(0),

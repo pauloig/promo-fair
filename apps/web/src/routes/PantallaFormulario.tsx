@@ -102,6 +102,7 @@ export function PantallaFormulario() {
       <PantallaConfirmada
         resumen={c.resumenAMostrar}
         nombre={c.nombre}
+        rango={c.rango}
         onEditar={c.editar}
       />
     );

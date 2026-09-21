@@ -11,6 +11,16 @@ export function formatoFechaLegible(iso: string): string {
   return formateador.format(new Date(iso));
 }
 
+export function formatoFechaCorta(iso: string): string {
+  if (!iso) return "";
+  const formateador = new Intl.DateTimeFormat("es-GT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  return formateador.format(new Date(iso));
+}
+
 function rellenar(n: number): string {
   return String(n).padStart(2, "0");
 }

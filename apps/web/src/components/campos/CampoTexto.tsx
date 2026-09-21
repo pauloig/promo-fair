@@ -8,6 +8,7 @@ type Props = {
   tipo?: "text" | "email" | "password";
   valor: string;
   onCambio: (valor: string) => void;
+  onBlur?: () => void;
   anchoClase?: string;
   error?: string;
 };
@@ -20,6 +21,7 @@ export function CampoTexto({
   tipo = "text",
   valor,
   onCambio,
+  onBlur,
   anchoClase = "w-full",
   error,
 }: Props) {
@@ -33,6 +35,7 @@ export function CampoTexto({
         required
         value={valor}
         onChange={(evento) => onCambio(evento.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         aria-invalid={error !== undefined}
         className={`${CLASE_CAMPO} ${anchoClase} ${

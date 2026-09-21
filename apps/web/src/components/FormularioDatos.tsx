@@ -1,6 +1,6 @@
 import type { ConfirmacionInput } from "@disagro/shared/schemas";
 import { Controller } from "react-hook-form";
-import type { Control, FieldErrors } from "react-hook-form";
+import type { Control } from "react-hook-form";
 import {
   datetimeLocalAIso,
   isoADatetimeLocal,
@@ -11,14 +11,12 @@ import { CampoTexto } from "./campos/CampoTexto";
 
 type Props = {
   control: Control<ConfirmacionInput>;
-  errores: FieldErrors<ConfirmacionInput>;
   rango: { fechaInicio: string; fechaFin: string } | null;
   disposicion?: "apilado" | "cuadricula";
 };
 
 export function FormularioDatos({
   control,
-  errores,
   rango,
   disposicion = "apilado",
 }: Props) {
@@ -46,6 +44,7 @@ export function FormularioDatos({
               autoCompletar="given-name"
               valor={field.value}
               onCambio={field.onChange}
+              onBlur={field.onBlur}
               error={fieldState.error?.message}
             />
           )}
@@ -61,6 +60,7 @@ export function FormularioDatos({
               autoCompletar="family-name"
               valor={field.value}
               onCambio={field.onChange}
+              onBlur={field.onBlur}
               error={fieldState.error?.message}
             />
           )}
@@ -77,6 +77,7 @@ export function FormularioDatos({
               tipo="email"
               valor={field.value}
               onCambio={field.onChange}
+              onBlur={field.onBlur}
               error={fieldState.error?.message}
             />
           )}
@@ -89,9 +90,10 @@ export function FormularioDatos({
               <CampoFecha
                 valor={isoADatetimeLocal(field.value)}
                 onCambio={(naiva) => field.onChange(datetimeLocalAIso(naiva))}
+                onBlur={field.onBlur}
                 min={rango ? isoADatetimeLocal(rango.fechaInicio) : undefined}
                 max={rango ? isoADatetimeLocal(rango.fechaFin) : undefined}
-                error={errores.fechaHoraEvento?.message}
+                error={fieldState.error?.message}
               />
             )}
           />

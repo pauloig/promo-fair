@@ -180,10 +180,14 @@ export function useConfirmacion() {
     erroresFormulario.fechaHoraEvento === undefined;
 
   const puedeConfirmar = datosCompletos && seleccionados.size > 0 && !enviando;
+  const fechaFueraDeRango =
+    fechaHoraEvento !== "" && rango !== null && !estaDentroDelRango(fechaHoraEvento, rango);
   const pistaBloqueo =
     seleccionados.size === 0
       ? "Seleccione al menos un servicio o producto para confirmar."
-      : "Complete los campos del formulario para confirmar.";
+      : fechaFueraDeRango
+        ? "La fecha y hora debe estar dentro del rango vigente del evento."
+        : "Complete los campos del formulario para confirmar.";
 
   function alternarItem(id: string): void {
     setSeleccionados((anterior) => {

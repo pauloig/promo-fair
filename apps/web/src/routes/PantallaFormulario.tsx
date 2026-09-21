@@ -166,7 +166,6 @@ export function PantallaFormulario() {
 
             <FormularioDatos
               control={c.control}
-              errores={c.errores}
               rango={c.rango}
               disposicion="cuadricula"
             />

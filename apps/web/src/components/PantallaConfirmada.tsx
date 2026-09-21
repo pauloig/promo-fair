@@ -4,6 +4,7 @@ import type {
   TipoItem,
 } from "@disagro/shared/schemas";
 import { formatearPrecioQ } from "../lib/dinero";
+import { Encabezado } from "./Encabezado";
 import { EtiquetaTipo } from "./EtiquetaTipo";
 import { IconoCheck } from "./Iconos";
 import { Pie } from "./Pie";
@@ -43,22 +44,11 @@ export function PantallaConfirmada({ resumen, nombre, onEditar }: Props) {
 
   return (
     <div className="min-h-screen bg-gris-pagina">
-      <header className="bg-carbon text-white">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:py-14">
-          <div className="flex max-w-xl flex-col gap-3">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-hoja">
-              Disagro
-            </p>
-            <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">
-              La feria, a su medida
-            </h1>
-            <p className="text-sm leading-relaxed text-white/70">
-              Su asistencia quedó registrada junto con su selección de servicios
-              y productos.
-            </p>
-          </div>
-        </div>
-      </header>
+      <Encabezado
+        sobreTitulo="Disagro"
+        titulo="La feria, a su medida"
+        descripcion="Su asistencia quedó registrada junto con su selección de servicios y productos."
+      />
 
       <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
         <div className="flex flex-col items-center gap-3 rounded-2xl bg-carbon p-8 text-center text-white shadow-lg">

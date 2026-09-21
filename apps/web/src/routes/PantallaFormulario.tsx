@@ -1,3 +1,4 @@
+import { Encabezado } from "../components/Encabezado";
 import { EncabezadoSeccion } from "../components/EncabezadoSeccion";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { FormularioDatos } from "../components/FormularioDatos";
@@ -85,7 +86,7 @@ function umbrales(tipo: TipoItem, categoria: ResumenCategoria): Umbral[] {
   ];
 }
 
-export function PantallaAlternativa() {
+export function PantallaFormulario() {
   const c = useConfirmacion();
 
   if (c.recuperando) {
@@ -113,54 +114,54 @@ export function PantallaAlternativa() {
 
   return (
     <div className="min-h-screen bg-gris-pagina">
-      <header className="bg-carbon text-white">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:py-14">
-          <div className="flex max-w-xl flex-col gap-3">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-hoja">
-              Disagro
-            </p>
-            <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">
-              La feria, a su medida
-            </h1>
-            <p className="text-sm leading-relaxed text-white/70">
-              Confirme su asistencia, seleccione los servicios y productos de su
-              interés y observe cómo su descuento crece en tiempo real con cada
-              selección.
-            </p>
-          </div>
-
-          <ol
-            className="flex items-center gap-2"
-            aria-label="Progreso del formulario"
-          >
-            {pasos.map((paso, indice) => (
-              <li key={paso.numero} className="flex items-center gap-2">
-                {indice > 0 && <span className="h-px w-5 bg-white/30 sm:w-8" />}
-                <span
-                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
-                    paso.activo
-                      ? "border-hoja bg-hoja text-carbon"
-                      : "border-white/25 text-white/60"
-                  }`}
-                >
+      <Encabezado
+        sobreTitulo="Disagro"
+        titulo="La feria, a su medida"
+        descripcion="Confirme su asistencia, seleccione los servicios y productos de su interés y observe cómo su descuento crece en tiempo real con cada selección."
+        acciones={
+          <div className="flex flex-col items-start gap-3 lg:items-end">
+            <ol
+              className="flex items-center gap-2"
+              aria-label="Progreso del formulario"
+            >
+              {pasos.map((paso, indice) => (
+                <li key={paso.numero} className="flex items-center gap-2">
+                  {indice > 0 && (
+                    <span className="h-px w-5 bg-white/30 sm:w-8" />
+                  )}
                   <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-                      paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
+                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${
+                      paso.activo
+                        ? "border-hoja bg-hoja text-carbon"
+                        : "border-white/25 text-white/60"
                     }`}
                   >
-                    {paso.activo ? (
-                      <IconoCheck className="h-3 w-3" />
-                    ) : (
-                      paso.numero
-                    )}
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                        paso.activo ? "bg-carbon text-hoja" : "bg-white/10"
+                      }`}
+                    >
+                      {paso.activo ? (
+                        <IconoCheck className="h-3 w-3" />
+                      ) : (
+                        paso.numero
+                      )}
+                    </span>
+                    {paso.etiqueta}
                   </span>
-                  {paso.etiqueta}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </header>
+                </li>
+              ))}
+            </ol>
+            <a
+              href="#/ventas"
+              onClick={() => window.scrollTo(0, 0)}
+              className="text-xs font-bold text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-hoja"
+            >
+              Panel de Ventas →
+            </a>
+          </div>
+        }
+      />
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">

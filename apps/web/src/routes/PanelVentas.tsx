@@ -3,6 +3,7 @@ import type {
   VentasConfirmacionFila,
   VentasResumen,
 } from "@disagro/shared/schemas";
+import { Encabezado } from "../components/Encabezado";
 import { EtiquetaTipo } from "../components/EtiquetaTipo";
 import { Pie } from "../components/Pie";
 import { CampoTexto } from "../components/campos/CampoTexto";
@@ -19,7 +20,20 @@ export function PanelVentas() {
 
   return (
     <div className="min-h-screen bg-gris-pagina">
-      <CabeceraVentas />
+      <Encabezado
+        sobreTitulo="Panel de Ventas · Disagro"
+        titulo="Confirmaciones de la feria"
+        descripcion="Consulte las confirmaciones de asistencia de los clientes, filtre por fecha u ítem del catálogo y exporte los resultados."
+        acciones={
+          <a
+            href="#/"
+            onClick={() => window.scrollTo(0, 0)}
+            className="shrink-0 text-xs font-bold text-white/70 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-hoja"
+          >
+            ← Volver a la plataforma
+          </a>
+        }
+      />
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
         {v.estado === "comprobando" && (
@@ -58,34 +72,6 @@ export function PanelVentas() {
 
       <Pie />
     </div>
-  );
-}
-
-function CabeceraVentas() {
-  return (
-    <header className="bg-carbon text-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:py-14">
-        <div className="flex max-w-xl flex-col gap-3">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-hoja">
-            Panel de Ventas · Disagro
-          </p>
-          <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">
-            Confirmaciones de la feria
-          </h1>
-          <p className="text-sm leading-relaxed text-white/70">
-            Consulte las confirmaciones de asistencia de los clientes, filtre
-            por fecha u ítem del catálogo y exporte los resultados.
-          </p>
-        </div>
-        <a
-          href="#/"
-          onClick={() => window.scrollTo(0, 0)}
-          className="shrink-0 rounded-full border border-white/25 px-4 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-hoja/60"
-        >
-          ← Volver a la plataforma
-        </a>
-      </div>
-    </header>
   );
 }
 

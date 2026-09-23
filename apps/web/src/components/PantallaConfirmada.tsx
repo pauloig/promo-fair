@@ -54,7 +54,7 @@ export function PantallaConfirmada({ resumen, nombre, rango, onEditar }: Props) 
   const saludo = nombre.trim() !== "" ? `, ${nombre.trim()}` : "";
 
   return (
-    <div className="flex min-h-screen flex-col bg-gris-pagina">
+    <div className="flex min-h-dvh flex-col bg-gris-pagina">
       <Encabezado sobreTitulo="FERIA DE PROMOCIONES DISAGRO" />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-10">

@@ -142,7 +142,7 @@ export function PantallaFormulario() {
       : (c.rangoError ?? "Consultando el rango de fecha del evento…");
 
   return (
-    <div className="flex min-h-screen flex-col bg-gris-pagina">
+    <div className="flex min-h-dvh flex-col bg-gris-pagina">
       <Encabezado
         sobreTitulo="FERIA DE PROMOCIONES DISAGRO"
         nota={notaEvento}

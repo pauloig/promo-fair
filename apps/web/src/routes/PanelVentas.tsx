@@ -35,7 +35,7 @@ export function PanelVentas() {
   const v = useVentas();
 
   return (
-    <div className="flex min-h-screen flex-col bg-gris-pagina">
+    <div className="flex min-h-dvh flex-col bg-gris-pagina">
       <Encabezado
         sobreTitulo="Panel de Ventas · Disagro"
         anchoClase={ANCHO_PANEL}

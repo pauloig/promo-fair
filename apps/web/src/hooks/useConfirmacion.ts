@@ -79,9 +79,7 @@ export function useConfirmacion() {
 
   const prellenado = useRef(false);
 
-  useEffect(() => {
-    const propios = miConfirmacion.data;
-    if (propios === undefined || propios === null || prellenado.current) return;
+  function precargarFormulario(propios: ConfirmacionPropia): void {
     prellenado.current = true;
     form.reset({
       cliente: {
@@ -93,6 +91,12 @@ export function useConfirmacion() {
       itemIds: propios.items.map((item) => item.catalogoItemId),
     });
     setSeleccionados(new Set(propios.items.map((item) => item.catalogoItemId)));
+  }
+
+  useEffect(() => {
+    const propios = miConfirmacion.data;
+    if (propios === undefined || propios === null || prellenado.current) return;
+    precargarFormulario(propios);
   }, [form, miConfirmacion.data]);
 
   useEffect(() => {
@@ -189,6 +193,20 @@ export function useConfirmacion() {
         ? "La fecha y hora debe estar dentro del rango vigente del evento."
         : "Complete los campos del formulario para confirmar.";
 
+  const errorFueraRango =
+    form.formState.errors.fechaHoraEvento?.type === "fueraRango";
+
+  useEffect(() => {
+    if (fechaFueraDeRango && rango !== null) {
+      form.setError("fechaHoraEvento", {
+        type: "fueraRango",
+        message: `La fecha debe estar entre el ${formatoFechaLegible(rango.fechaInicio)} y el ${formatoFechaLegible(rango.fechaFin)}.`,
+      });
+    } else if (errorFueraRango) {
+      form.clearErrors("fechaHoraEvento");
+    }
+  }, [fechaFueraDeRango, form, rango, errorFueraRango]);
+
   function alternarItem(id: string): void {
     setSeleccionados((anterior) => {
       const siguiente = new Set(anterior);
@@ -236,9 +254,19 @@ export function useConfirmacion() {
     })();
   }
 
-  function editar(): void {
+  async function editar(): Promise<void> {
     setEditando(true);
+    setConfirmada(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const propios = await queryClient.fetchQuery({
+      queryKey: ["confirmaciones", "mia"],
+      queryFn: obtenerMiConfirmacion,
+      staleTime: 0,
+      retry: false,
+    });
+    if (propios !== null) {
+      precargarFormulario(propios);
+    }
   }
 
   const recuperando = miConfirmacion.isLoading;

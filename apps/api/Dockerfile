@@ -10,7 +10,12 @@ COPY apps apps
 COPY packages packages
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --config.package-import-method=copy --config.verifyDepsBeforeRun=false
+    pnpm install --frozen-lockfile \
+    --config.package-import-method=copy \
+    --config.verifyDepsBeforeRun=false \
+    --config.network-concurrency=1 \
+    --config.fetch-retries=5 \
+    --config.fetch-timeout=300000
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm --filter @disagro/shared build
 RUN cd apps/api && DATABASE_URL="postgresql://disagro:disagro@localhost:5432/disagro" pnpm exec prisma generate

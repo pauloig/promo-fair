@@ -12,7 +12,10 @@ COPY packages packages
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile \
+    --config.network-concurrency=1 \
+    --config.fetch-retries=5 \
+    --config.fetch-timeout=300000
 RUN pnpm --filter @disagro/shared build
 RUN pnpm --filter @disagro/web build
 
